@@ -19,6 +19,8 @@ Developed by **Novice**.
 | `dist/index.html` | Built page — deployed, **generated, do not hand-edit** |
 | `api/` | Serverless routes: read sets, host auth, publish, hero upload |
 | `vercel.json` | Vercel static config |
+| `supabase/schema.sql` | Supabase schema — tables, RLS, server-side grading |
+| `docs/supabase-setup.md` | Step-by-step Supabase setup |
 
 After editing the design source, run:
 
@@ -131,6 +133,13 @@ git push -u origin main
 1. Import `Novice-Rw/Darul-Ilm` — framework preset **Other**, output directory `dist`.
 2. Add the domain in Vercel; in Namecheap Advanced DNS add a **CNAME**: host `challenge` → `cname.vercel-dns.com`.
 3. Live at `https://challenge.darul-ilm.com`.
+
+## Moving the server side to Supabase
+
+Answers currently reach the browser, because the browser scores the quiz. That is the
+one thing this architecture cannot fix. [`docs/supabase-setup.md`](docs/supabase-setup.md)
+is the step-by-step for moving to Supabase, where questions are read through a view with
+no answer column and grading happens in the database.
 
 ## Backend plan (recommended)
 
