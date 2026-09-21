@@ -8,6 +8,7 @@
 <body>
 <x-dc>
 <helmet>
+<title>Darul-Ilm Challenge — Discover yourself through Islam</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
@@ -34,6 +35,24 @@ a:hover{color:var(--ink)}
 button{font-family:inherit}
 @keyframes riseIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.hdr{flex-wrap:nowrap}
+.brand{flex:0 1 auto}
+.brand-logo{width:38px;height:38px}
+.brand-name{font-size:clamp(15px,4vw,19px)}
+.nav{margin-inline-start:auto;flex:0 0 auto;flex-wrap:nowrap}
+.navbtn{font-size:13px;padding:8px 12px;white-space:nowrap}
+.themebtn{width:36px;height:36px;font-size:14px}
+@media (max-width:640px){ .navbtn{font-size:12px;padding:7px 9px} }
+@media (max-width:480px){
+  .navbtn{font-size:11.5px;padding:6px 7px}
+  .brand-sub{display:none}
+  .themebtn{width:32px;height:32px}
+}
+@media (max-width:390px){
+  .navbtn{font-size:11px;padding:5px 5px}
+  .brand-name{font-size:14px}
+  .brand-logo{width:32px;height:32px}
+}
 @media print{
   .np{display:none !important}
   html,body{background:#fff;color:#000}
@@ -52,19 +71,19 @@ button{font-family:inherit}
     <div style="position:absolute;top:-20%;right:-10%;width:70%;height:90%;border-radius:50%;background:radial-gradient(circle at 60% 40%, color-mix(in srgb, var(--green) 40%, transparent), transparent 70%);filter:blur(60px);pointer-events:none"></div>
   </div>
 
-  <header class="np" style="position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:12px clamp(14px,4vw,48px);background:color-mix(in srgb, var(--bg) 86%, transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)">
-    <div onClick="{{ brandTap }}" style="display:flex;align-items:center;gap:10px;cursor:pointer;min-width:0;flex:1 1 auto">
-      <img src="assets/darul-ilm-logo.jpeg" alt="Darul-Ilm" style="width:38px;height:38px;border-radius:9px;object-fit:cover;object-position:center 42%;border:1px solid var(--line)" />
+  <header class="np hdr" style="position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px 16px;padding:12px clamp(14px,4vw,48px);background:color-mix(in srgb, var(--bg) 86%, transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)">
+    <div onClick="{{ brandTap }}" class="brand" style="display:flex;align-items:center;gap:10px;cursor:pointer;min-width:0">
+      <img src="assets/darul-ilm-logo.jpeg" alt="Darul-Ilm" class="brand-logo" style="flex:0 0 auto;border-radius:9px;object-fit:cover;object-position:center 42%;border:1px solid var(--line)" />
       <div style="display:flex;flex-direction:column;line-height:1.05;min-width:0">
-        <span style="font-family:'Cormorant Garamond',serif;font-size:clamp(16px,4.2vw,19px);font-weight:600;letter-spacing:.12em;white-space:nowrap">DARUL-ILM</span>
-        <span style="font-family:'Amiri',serif;font-size:11px;letter-spacing:.14em;color:var(--gold);white-space:nowrap;direction:rtl">دَارُ العلم</span>
+        <span class="brand-name" style="font-family:'Cormorant Garamond',serif;font-weight:600;letter-spacing:.12em;white-space:nowrap">DARUL-ILM</span>
+        <span class="brand-sub" style="font-family:'Amiri',serif;font-size:11px;letter-spacing:.14em;color:var(--gold);white-space:nowrap;direction:rtl">دَارُ العلم</span>
       </div>
     </div>
-    <div style="flex:1"></div>
-    <nav style="display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:4px">
-      <button onClick="{{ goHome }}" style="background:none;border:none;color:var(--mute);font-size:13px;padding:8px 12px;border-radius:8px;cursor:pointer" style-hover="color:var(--ink);background:var(--surface2)">{{ t.navHome }}</button>
-      <button onClick="{{ goRepo }}" style="background:none;border:none;color:var(--mute);font-size:13px;padding:8px 12px;border-radius:8px;cursor:pointer" style-hover="color:var(--ink);background:var(--surface2)">{{ t.navRepo }}</button>
-      <button onClick="{{ toggleTheme }}" title="Theme" style="width:36px;height:36px;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;color:var(--ink);font-size:14px;cursor:pointer;margin-inline-start:6px" style-hover="border-color:var(--gold)">{{ themeIcon }}</button>
+    <nav class="nav" style="display:flex;align-items:center;gap:4px">
+      <button onClick="{{ goHome }}" class="navbtn" style="background:none;border:none;color:var(--mute);border-radius:8px;cursor:pointer" style-hover="color:var(--ink);background:var(--surface2)">{{ t.navHome }}</button>
+      <button onClick="{{ goRepo }}" class="navbtn" style="background:none;border:none;color:var(--mute);border-radius:8px;cursor:pointer" style-hover="color:var(--ink);background:var(--surface2)">{{ t.navRepo }}</button>
+      <button onClick="{{ goAdmin }}" class="navbtn" title="Host console" style="background:none;border:none;color:var(--gold);border-radius:8px;cursor:pointer" style-hover="color:var(--ink);background:var(--surface2)">{{ t.navAdmin }}</button>
+      <button onClick="{{ toggleTheme }}" title="Theme" class="themebtn" style="display:grid;place-items:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;color:var(--ink);cursor:pointer;margin-inline-start:6px;flex:0 0 auto" style-hover="border-color:var(--gold)">{{ themeIcon }}</button>
     </nav>
   </header>
 
@@ -240,7 +259,7 @@ button{font-family:inherit}
               <p style="font-size:13.5px;color:var(--mute);line-height:1.55;margin:8px 0 22px">Protected page. Enter the host passphrase to publish questions.</p>
               <input type="password" value="{{ pass }}" onChange="{{ setPass }}" placeholder="Passphrase" style="width:100%;min-height:50px;padding:0 16px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:15px;font-family:inherit;outline:none" />
               <button onClick="{{ submitPass }}" style="width:100%;min-height:50px;margin-top:10px;border-radius:12px;border:none;background:var(--green);color:#fff;font-size:15px;font-weight:600;cursor:pointer" style-hover="background:var(--gold)">Unlock</button>
-              <div style="font-size:11.5px;color:var(--mute);margin-top:14px">Demo passphrase: <span style="color:var(--gold)">darul-ilm</span></div>
+              <div style="font-size:11.5px;color:var(--bad);margin-top:14px;min-height:16px">{{ passErr }}</div>
             </div>
           </sc-if>
 
@@ -335,7 +354,7 @@ button{font-family:inherit}
   </main>
 
   <footer class="np" style="position:relative;z-index:1;padding:22px clamp(16px,5vw,48px);border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;font-size:12px;color:var(--mute)">
-    <span>Darul-Ilm · darul-ilm.com</span>
+    <span>Darul-Ilm</span>
     <span>Developed by <span style="color:var(--gold);font-weight:600;letter-spacing:.04em">NOVICE</span></span>
   </footer>
 </div>
@@ -457,8 +476,18 @@ const TOPICS = [
 const TYPES = ["Multiple choice","Checkbox","Short answer","Paragraph","Dropdown","Rating","Linear scale","Checkbox grid","Multiple-choice grid","Date & time"];
 const SECS = 30;
 
+// SHA-256 of the host passphrase. The passphrase itself is never stored in this file.
+// To change it:  printf '%s' 'your new passphrase' | shasum -a 256
+const HOST_PASS_SHA256 = "8a414ce97e9f6f01df621a1c7a94f022b4d95d560024abe2b96669b618638f44";
+
+async function sha256Hex(str){
+  if(!(window.crypto && window.crypto.subtle)) throw new Error("insecure-context");
+  const buf = await window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+
 class Component extends DCLogic {
-  state = {theme:this.props.startTheme ?? "dark",screen:"landing",lang:this.props.defaultLanguage ?? "en",qi:0,answers:{},left:this.secs(),pass:"",adminAuthed:false,adminType:"Multiple choice",adminCorrect:2};
+  state = {theme:this.props.startTheme ?? "dark",screen:"landing",lang:this.props.defaultLanguage ?? "en",qi:0,answers:{},left:this.secs(),pass:"",passErr:"",adminAuthed:false,adminType:"Multiple choice",adminCorrect:2};
 
   secs(){ return Math.max(5, Number(this.props.secondsPerQuestion) || SECS); }
 
@@ -566,9 +595,17 @@ class Component extends DCLogic {
         cursor: tp.live ? "pointer" : "default",
         open: tp.live ? ()=>{ this.setState({screen:"quiz",qi:0,answers:{},left:this.secs()},()=>this.startTimer()); window.scrollTo(0,0); } : ()=>{} })),
 
-      needsPass: !s.adminAuthed, adminAuthed:s.adminAuthed, pass:s.pass,
+      needsPass: !s.adminAuthed, adminAuthed:s.adminAuthed, pass:s.pass, passErr:s.passErr,
       setPass:(e)=>this.setState({pass:e.target.value}),
-      submitPass:()=>this.setState({adminAuthed:true}),
+      submitPass:async()=>{
+        const entered = this.state.pass;
+        if(!entered){ this.setState({passErr:"Enter the passphrase."}); return; }
+        let h;
+        try { h = await sha256Hex(entered); }
+        catch(e){ this.setState({passErr:"Needs https:// or localhost."}); return; }
+        if(h === HOST_PASS_SHA256){ this.setState({adminAuthed:true,pass:"",passErr:""}); }
+        else { this.setState({pass:"",passErr:"Incorrect passphrase."}); }
+      },
       qTypes:TYPES, adminType:s.adminType,
       setAdminType:(e)=>this.setState({adminType:e.target.value}),
       adminOpts:["3","4","5","7"].map((v,i)=>({ value:v,

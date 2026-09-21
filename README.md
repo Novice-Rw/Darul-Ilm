@@ -33,8 +33,19 @@ The host portal is not linked anywhere in the UI. Two ways in:
 1. Tap the **DARUL-ILM logo 5 times within ~1.8 seconds**.
 2. Open the site with **`#host`** in the URL — e.g. `https://challenge.darul-ilm.com/#host`.
 
-Both land on the passphrase gate. Demo passphrase: `darul-ilm` — replace it with a real
-server-side check before going live (see below).
+Both land on the passphrase gate. The passphrase is **not stored in this repo** — only its
+SHA-256 hash, in `HOST_PASS_SHA256`. To change it:
+
+```bash
+printf '%s' 'your new passphrase' | shasum -a 256
+```
+
+Paste the hash into `HOST_PASS_SHA256` in **both** `Darul-Ilm Challenge.dc.html` and
+`dist/index.html`. Never commit the passphrase itself.
+
+> **This is obfuscation, not security.** The check runs in the browser, so anyone willing to read
+> the bundle can bypass the gate entirely. It stops casual access, nothing more. Do not treat
+> unpublished questions as confidential until the server-side check below is built.
 
 Inside the console: visual question builder (all ten question types, three language fields per
 question, correct-answer marking, explanation), per-set timer, CSV/JSON bulk import, published-set
