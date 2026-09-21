@@ -697,7 +697,7 @@ class Component extends DCLogic {
     dId:"",dTitleEn:"",dTitleRw:"",dTitleAr:"",dSecs:SECS,dJson:"",
     qList:[blankQ()],qIdx:0,editLang:"en",showJson:false,
     dOpens:dtLocal(new Date()),dCloses:dtLocal(new Date(Date.now()+7*86400000)),
-    pubMsg:"",pubOk:true,heroMsg:"",heroOk:true,pass:"",passErr:"",adminAuthed:false,
+    pubMsg:"",pubOk:true,jsonMsg:"",jsonOk:true,heroMsg:"",heroOk:true,pass:"",passErr:"",adminAuthed:false,
     session:null,offline:false,reveal:"after_close",
     graded:null,grading:false,qLoading:false,qErr:"",hostEmail:"",hostRows:[]};
 
@@ -908,16 +908,20 @@ class Component extends DCLogic {
 
   // What the builder produces, and what publish_set expects.
   buildQuestions(){
+    const trim=v=>(v||"").trim();
     return this.state.qList.map(x=>{
-      const keep=(arr)=>arr.map(v=>(v||"").trim());
-      const en=keep(x.o.en);
-      const out={ c:x.c, q:{en:(x.q.en||"").trim()}, o:{en}, e:{} };
+      // A question starts with four empty boxes. Only the ones actually filled
+      // in become options, and the correct index moves with them.
+      const keepIdx=(x.o.en||[]).map((v,i)=>trim(v)?i:-1).filter(i=>i>=0);
+      const pick=(arr)=>keepIdx.map(i=>trim((arr||[])[i]));
+      const en=pick(x.o.en);
+      const out={ c: Math.max(0, keepIdx.indexOf(x.c)), q:{en:trim(x.q.en)}, o:{en}, e:{} };
       ["rw","ar"].forEach(L=>{
-        if((x.q[L]||"").trim()) out.q[L]=x.q[L].trim();
-        const opts=keep(x.o[L]||[]);
+        if(trim(x.q[L])) out.q[L]=trim(x.q[L]);
+        const opts=pick(x.o[L]);
         if(opts.some(v=>v)) out.o[L]=opts;
       });
-      ["en","rw","ar"].forEach(L=>{ if((x.e[L]||"").trim()) out.e[L]=x.e[L].trim(); });
+      ["en","rw","ar"].forEach(L=>{ if(trim(x.e[L])) out.e[L]=trim(x.e[L]); });
       return out;
     });
   }
@@ -929,8 +933,8 @@ class Component extends DCLogic {
       const n=i+1;
       if(!(x.q.en||"").trim()) out.push("Question "+n+": English text is missing.");
       const filled=(x.o.en||[]).filter(v=>(v||"").trim());
-      if(filled.length<2) out.push("Question "+n+": needs at least two options.");
-      else if(!((x.o.en||[])[x.c]||"").trim()) out.push("Question "+n+": mark which option is correct.");
+      if(filled.length<2) out.push("Question "+n+": fill in at least two options (empty boxes are ignored).");
+      else if(!((x.o.en||[])[x.c]||"").trim()) out.push("Question "+n+": the option marked correct is empty — mark one that has text.");
     });
     return out;
   }
@@ -938,10 +942,10 @@ class Component extends DCLogic {
   importJson(){
     let v;
     try{ v=JSON.parse((this.state.dJson||"").trim()||"[]"); }
-    catch(e){ this.setState({pubMsg:"Not valid JSON — "+e.message, pubOk:false}); return; }
-    if(!Array.isArray(v) || !v.length){ this.setState({pubMsg:"Paste a non-empty JSON array.",pubOk:false}); return; }
+    catch(e){ this.setState({jsonMsg:"Not valid JSON — "+e.message, jsonOk:false}); return; }
+    if(!Array.isArray(v) || !v.length){ this.setState({jsonMsg:"Paste a non-empty JSON array first.",jsonOk:false}); return; }
     const list=v.map(normQ);
-    this.setState({qList:list, qIdx:0, showJson:false,
+    this.setState({qList:list, qIdx:0, showJson:false, jsonMsg:"",
       pubMsg:"Loaded "+list.length+" question"+(list.length===1?"":"s")+" into the builder.", pubOk:true});
   }
 
@@ -1184,8 +1188,8 @@ class Component extends DCLogic {
       showJson:s.showJson, toggleJson:()=>this.setState({showJson:!s.showJson}),
       jsonToggleLabel: s.showJson ? "Hide" : "Show",
       doImportJson:()=>this.importJson(),
-      jsonStatus: jsonErr || (parsedQs.length+" question"+(parsedQs.length===1?"":"s")+" in the box"),
-      jsonColor: jsonErr ? "var(--bad)" : "var(--mute)",
+      jsonStatus: s.jsonMsg || jsonErr || (parsedQs.length+" question"+(parsedQs.length===1?"":"s")+" in the box"),
+      jsonColor: (s.jsonMsg && !s.jsonOk) || jsonErr ? "var(--bad)" : "var(--mute)",
       editLang:s.editLang,
       langTabs:[{k:"en",label:"English"},{k:"rw",label:"Kinyarwanda"},{k:"ar",label:"العربية"}].map(L=>({
         label:L.label,
