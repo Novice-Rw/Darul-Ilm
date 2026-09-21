@@ -13,7 +13,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet" />
-<script src="./image-slot.js"></script>
 <style>
 :root{
   --bg:#070f0c; --surface:#0d1a15; --surface2:#11231c; --line:rgba(255,255,255,.10);
@@ -65,7 +64,6 @@ button{font-family:inherit}
 
   <div class="np" style="position:fixed;inset:0;z-index:0;overflow:hidden;max-width:100vw">
     <div style="position:absolute;top:-8%;bottom:-8%;right:-6%;width:72%;filter:blur(18px) saturate(.8);opacity:.85;-webkit-mask-image:linear-gradient(to left, rgba(0,0,0,1) 18%, rgba(0,0,0,.55) 55%, rgba(0,0,0,0) 92%);mask-image:linear-gradient(to left, rgba(0,0,0,1) 18%, rgba(0,0,0,.55) 55%, rgba(0,0,0,0) 92%)">
-      <image-slot id="dil-bg" shape="rect" fit="cover" placeholder=" " style="pointer-events:none"></image-slot>
       <sc-if value="{{ hasHero }}"><div style="position:absolute;inset:0;background-image:url('{{ heroUrl }}');background-size:cover;background-position:center"></div></sc-if>
     </div>
     <div style="position:absolute;inset:0;background:color-mix(in srgb, var(--bg) 78%, transparent);pointer-events:none"></div>
@@ -310,11 +308,20 @@ button{font-family:inherit}
                   <label style="font-size:12.5px;color:var(--mute)">Set id — lowercase letters, numbers and hyphens</label>
                   <input value="{{ dId }}" onChange="{{ setDId }}" placeholder="swala-round-1" style="min-height:48px;padding:0 14px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:14.5px;font-family:inherit;outline:none" />
                 </div>
-                <div style="display:flex;flex-direction:column;gap:9px">
+                <div style="display:flex;flex-direction:column;gap:10px">
                   <label style="font-size:12.5px;color:var(--mute)">Title shown on the landing page</label>
-                  <input value="{{ dTitleEn }}" onChange="{{ setDTitleEn }}" placeholder="English title" style="min-height:48px;padding:0 14px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:14.5px;font-family:inherit;outline:none" />
-                  <input value="{{ dTitleRw }}" onChange="{{ setDTitleRw }}" placeholder="Kinyarwanda (optional)" style="min-height:48px;padding:0 14px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:14.5px;font-family:inherit;outline:none" />
-                  <input value="{{ dTitleAr }}" onChange="{{ setDTitleAr }}" dir="rtl" placeholder="العربية (optional)" style="min-height:48px;padding:0 14px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:14.5px;font-family:inherit;outline:none;font-family:'Noto Kufi Arabic',sans-serif" />
+                  <div style="display:flex;flex-direction:column;gap:5px">
+                    <span style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)">English</span>
+                    <input value="{{ dTitleEn }}" onChange="{{ setDTitleEn }}" placeholder="Swala — the prayer" style="min-height:48px;padding:0 14px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:14.5px;font-family:inherit;outline:none" />
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:5px">
+                    <span style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)">Kinyarwanda · optional</span>
+                    <input value="{{ dTitleRw }}" onChange="{{ setDTitleRw }}" placeholder="Iswala" style="min-height:48px;padding:0 14px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:14.5px;font-family:inherit;outline:none" />
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:5px">
+                    <span style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)">العربية · optional</span>
+                    <input value="{{ dTitleAr }}" onChange="{{ setDTitleAr }}" dir="rtl" placeholder="الصلاة" style="min-height:48px;padding:0 14px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:14.5px;font-family:'Noto Kufi Arabic',sans-serif;outline:none" />
+                  </div>
                 </div>
                 <div style="display:flex;flex-wrap:wrap;gap:12px">
                   <div style="flex:1;min-width:145px;display:flex;flex-direction:column;gap:7px">
@@ -333,14 +340,70 @@ button{font-family:inherit}
                 </div>
               </div>
 
-              <div style="padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--surface);display:flex;flex-direction:column;gap:12px">
-                <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)">Questions</div>
-                <div style="font-size:12.5px;color:var(--mute);line-height:1.55">Paste a JSON array. <span style="color:var(--gold)">c</span> is the zero-based index of the correct option. Kinyarwanda and Arabic are optional — English is used where they are missing.</div>
-                <textarea rows="15" value="{{ dJson }}" onChange="{{ setDJson }}" spellcheck="false" placeholder='[{"c":2,"q":{"en":"How many prayers are obligatory each day?"},"o":{"en":["3","4","5","7"]},"e":{"en":"Five daily prayers."}}]' style="padding:12px 14px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:12.5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;line-height:1.5;outline:none;resize:vertical"></textarea>
-                <div style="font-size:12.5px;color:{{ jsonColor }}">{{ jsonStatus }}</div>
+              <div style="padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--surface);display:flex;flex-direction:column;gap:15px">
+                <div style="display:flex;align-items:center;flex-wrap:wrap;gap:10px">
+                  <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);flex:1;min-width:90px">Questions</div>
+                  <span style="font-size:12px;color:var(--mute)">Question {{ qPos }}</span>
+                </div>
+
+                <div style="display:flex;flex-wrap:wrap;gap:6px">
+                  <sc-for list="{{ langTabs }}" as="lg" hint-placeholder-count="3">
+                    <button onClick="{{ lg.pick }}" style="min-height:34px;padding:0 13px;border-radius:9px;background:{{ lg.bg }};color:{{ lg.color }};border:1px solid {{ lg.border }};font-size:12.5px;font-family:inherit;cursor:pointer">{{ lg.label }}</button>
+                  </sc-for>
+                </div>
+                <div style="font-size:11.5px;color:var(--mute);line-height:1.5;margin-top:-6px">Each language is edited separately. The correct answer is shared across all three.</div>
+
+                <div style="display:flex;flex-wrap:wrap;gap:6px">
+                  <sc-for list="{{ qChips }}" as="ch" hint-placeholder-count="4">
+                    <button onClick="{{ ch.go }}" style="width:32px;height:32px;border-radius:8px;background:{{ ch.bg }};color:{{ ch.color }};border:1px solid {{ ch.border }};font-size:12.5px;font-family:inherit;cursor:pointer">{{ ch.n }}</button>
+                  </sc-for>
+                  <button onClick="{{ addQuestion }}" style="min-height:32px;padding:0 12px;border-radius:8px;background:none;border:1px dashed var(--line);color:var(--mute);font-size:12.5px;font-family:inherit;cursor:pointer" style-hover="color:var(--gold);border-color:var(--gold)">+ Question</button>
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:7px">
+                  <label style="font-size:12.5px;color:var(--mute)">Question text</label>
+                  <textarea rows="2" value="{{ qText }}" onChange="{{ setQText }}" dir="{{ qDir }}" placeholder="How many prayers are obligatory each day?" style="padding:11px 14px;border-radius:11px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:14px;line-height:1.5;outline:none;resize:vertical;font-family:{{ qFont }}"></textarea>
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:9px">
+                  <label style="font-size:12.5px;color:var(--mute)">Options — tap the circle to mark the correct one</label>
+                  <sc-for list="{{ qOptions }}" as="op" hint-placeholder-count="4">
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <div onClick="{{ op.mark }}" style="width:22px;height:22px;flex:none;border-radius:50%;border:2px solid {{ op.ring }};background:{{ op.fill }};cursor:pointer"></div>
+                      <input value="{{ op.value }}" onChange="{{ op.set }}" dir="{{ qDir }}" style="min-height:46px;padding:0 14px;border-radius:11px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:14px;outline:none;flex:1;min-width:0;font-family:{{ qFont }}" />
+                      <button onClick="{{ op.drop }}" title="Remove option" style="width:34px;height:34px;flex:none;border-radius:9px;background:none;border:1px solid var(--line);color:var(--mute);font-size:15px;line-height:1;font-family:inherit;cursor:pointer" style-hover="color:var(--bad);border-color:var(--bad)">×</button>
+                    </div>
+                  </sc-for>
+                  <button onClick="{{ addOption }}" style="align-self:start;min-height:40px;padding:0 15px;border-radius:10px;background:none;border:1px dashed var(--line);color:var(--mute);font-size:13px;font-family:inherit;cursor:pointer" style-hover="color:var(--gold);border-color:var(--gold)">+ Add option</button>
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:7px">
+                  <label style="font-size:12.5px;color:var(--mute)">Explanation shown in the answer key</label>
+                  <textarea rows="2" value="{{ qExp }}" onChange="{{ setQExp }}" dir="{{ qDir }}" placeholder="Short reason the answer is correct" style="padding:11px 14px;border-radius:11px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:14px;line-height:1.5;outline:none;resize:vertical;font-family:{{ qFont }}"></textarea>
+                </div>
+
+                <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+                  <button onClick="{{ prevQ }}" style="min-height:38px;padding:0 13px;border-radius:10px;background:none;border:1px solid var(--line);color:var(--mute);font-size:12.5px;cursor:pointer" style-hover="color:var(--ink);border-color:var(--gold)">← Previous</button>
+                  <button onClick="{{ nextQ }}" style="min-height:38px;padding:0 13px;border-radius:10px;background:none;border:1px solid var(--line);color:var(--mute);font-size:12.5px;cursor:pointer" style-hover="color:var(--ink);border-color:var(--gold)">Next →</button>
+                  <button onClick="{{ removeQuestion }}" style="min-height:38px;padding:0 13px;border-radius:10px;background:none;border:1px solid var(--line);color:var(--mute);font-size:12.5px;cursor:pointer;margin-inline-start:auto" style-hover="color:var(--bad);border-color:var(--bad)">Delete question</button>
+                </div>
+
+                <div style="font-size:12.5px;color:var(--bad);min-height:17px;line-height:1.45">{{ builderProblems }}</div>
               </div>
 
               <div style="display:flex;flex-direction:column;gap:14px">
+                <div style="padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--surface)">
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);flex:1">Bulk import</div>
+                    <button onClick="{{ toggleJson }}" style="min-height:38px;padding:0 13px;border-radius:10px;background:none;border:1px solid var(--line);color:var(--mute);font-size:12.5px;cursor:pointer;min-height:32px" style-hover="color:var(--gold);border-color:var(--gold)">{{ jsonToggleLabel }}</button>
+                  </div>
+                  <sc-if value="{{ showJson }}">
+                    <div style="font-size:12px;color:var(--mute);line-height:1.5;margin:12px 0 10px">Paste a JSON array to fill the builder in one go. <span style="color:var(--gold)">c</span> is the zero-based index of the correct option.</div>
+                    <textarea rows="8" value="{{ dJson }}" onChange="{{ setDJson }}" spellcheck="false" placeholder='[{"c":2,"q":{"en":"How many prayers are obligatory each day?"},"o":{"en":["3","4","5","7"]},"e":{"en":"Five daily prayers."}}]' style="width:100%;padding:11px 13px;border-radius:11px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;line-height:1.5;outline:none;resize:vertical"></textarea>
+                    <div style="font-size:12px;color:{{ jsonColor }};margin-top:8px">{{ jsonStatus }}</div>
+                    <button onClick="{{ doImportJson }}" style="margin-top:10px;min-height:40px;padding:0 16px;border-radius:10px;border:none;background:var(--green);color:#fff;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer" style-hover="background:var(--gold)">Load into builder</button>
+                  </sc-if>
+                </div>
                 <div style="padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--surface)">
                   <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin-bottom:6px">Landing hero background</div>
                   <div style="font-size:12.5px;color:var(--mute);line-height:1.5;margin-bottom:14px">The blurred photo behind the landing headline only. Question, result and answer-key screens are not affected.</div>
@@ -609,9 +672,30 @@ function fmtDur(ms){
   return (s%60)+"s";
 }
 
+// One question, three languages. correct_index is shared across languages.
+function blankQ(){
+  return { c:0, q:{en:"",rw:"",ar:""},
+           o:{en:["","","",""], rw:["","","",""], ar:["","","",""]},
+           e:{en:"",rw:"",ar:""} };
+}
+
+// Normalise anything loaded from the database or pasted as JSON.
+function normQ(x){
+  const b=blankQ();
+  const q=(x&&x.q)||{}, o=(x&&x.o)||{}, e=(x&&x.e)||{};
+  const en=Array.isArray(o.en)?o.en.slice():["","",""];
+  const fit=(arr)=>{ const a=Array.isArray(arr)?arr.slice():[]; a.length=en.length; 
+                     return Array.from(a, v=>v==null?"":String(v)); };
+  return { c: Number.isInteger(x&&x.c) ? x.c : 0,
+           q:{en:q.en||"",rw:q.rw||"",ar:q.ar||""},
+           o:{en:Array.from(en,v=>v==null?"":String(v)), rw:fit(o.rw), ar:fit(o.ar)},
+           e:{en:e.en||"",rw:e.rw||"",ar:e.ar||""} };
+}
+
 class Component extends DCLogic {
   state = {theme:this.props.startTheme ?? "dark",screen:"landing",lang:this.props.defaultLanguage ?? "en",qi:0,answers:{},left:this.secs(),sets:[],setsLoaded:false,hero:null,activeId:null,now:Date.now(),
     dId:"",dTitleEn:"",dTitleRw:"",dTitleAr:"",dSecs:SECS,dJson:"",
+    qList:[blankQ()],qIdx:0,editLang:"en",showJson:false,
     dOpens:dtLocal(new Date()),dCloses:dtLocal(new Date(Date.now()+7*86400000)),
     pubMsg:"",pubOk:true,heroMsg:"",heroOk:true,pass:"",passErr:"",adminAuthed:false,
     session:null,offline:false,reveal:"after_close",
@@ -783,11 +867,89 @@ class Component extends DCLogic {
       .catch(()=>{});
   }
 
+  // --- question builder -------------------------------------------------
+  curQ(){ const st=this.state; return st.qList[st.qIdx] || blankQ(); }
+
+  updQ(mut){
+    const st=this.state;
+    const list=st.qList.slice();
+    const q=JSON.parse(JSON.stringify(list[st.qIdx] || blankQ()));
+    mut(q);
+    list[st.qIdx]=q;
+    this.setState({qList:list, pubMsg:""});
+  }
+
+  addQuestion(){
+    const list=this.state.qList.concat([blankQ()]);
+    this.setState({qList:list, qIdx:list.length-1, pubMsg:""});
+  }
+
+  removeQuestion(){
+    const st=this.state;
+    if(st.qList.length<=1){ this.setState({qList:[blankQ()], qIdx:0}); return; }
+    const list=st.qList.slice(); list.splice(st.qIdx,1);
+    this.setState({qList:list, qIdx:Math.max(0, st.qIdx-1)});
+  }
+
+  gotoQ(i){ this.setState({qIdx:Math.max(0, Math.min(i, this.state.qList.length-1))}); }
+
+  addOpt(){
+    this.updQ(q=>{ ["en","rw","ar"].forEach(L=>q.o[L].push("")); });
+  }
+
+  removeOpt(j){
+    this.updQ(q=>{
+      if(q.o.en.length<=2) return;
+      ["en","rw","ar"].forEach(L=>q.o[L].splice(j,1));
+      if(q.c>=q.o.en.length) q.c=q.o.en.length-1;
+      else if(q.c>j) q.c--;
+    });
+  }
+
+  // What the builder produces, and what publish_set expects.
+  buildQuestions(){
+    return this.state.qList.map(x=>{
+      const keep=(arr)=>arr.map(v=>(v||"").trim());
+      const en=keep(x.o.en);
+      const out={ c:x.c, q:{en:(x.q.en||"").trim()}, o:{en}, e:{} };
+      ["rw","ar"].forEach(L=>{
+        if((x.q[L]||"").trim()) out.q[L]=x.q[L].trim();
+        const opts=keep(x.o[L]||[]);
+        if(opts.some(v=>v)) out.o[L]=opts;
+      });
+      ["en","rw","ar"].forEach(L=>{ if((x.e[L]||"").trim()) out.e[L]=x.e[L].trim(); });
+      return out;
+    });
+  }
+
+  // Problems described in words, before the database rejects the whole set.
+  builderErrors(){
+    const out=[];
+    this.state.qList.forEach((x,i)=>{
+      const n=i+1;
+      if(!(x.q.en||"").trim()) out.push("Question "+n+": English text is missing.");
+      const filled=(x.o.en||[]).filter(v=>(v||"").trim());
+      if(filled.length<2) out.push("Question "+n+": needs at least two options.");
+      else if(!((x.o.en||[])[x.c]||"").trim()) out.push("Question "+n+": mark which option is correct.");
+    });
+    return out;
+  }
+
+  importJson(){
+    let v;
+    try{ v=JSON.parse((this.state.dJson||"").trim()||"[]"); }
+    catch(e){ this.setState({pubMsg:"Not valid JSON — "+e.message, pubOk:false}); return; }
+    if(!Array.isArray(v) || !v.length){ this.setState({pubMsg:"Paste a non-empty JSON array.",pubOk:false}); return; }
+    const list=v.map(normQ);
+    this.setState({qList:list, qIdx:0, showJson:false,
+      pubMsg:"Loaded "+list.length+" question"+(list.length===1?"":"s")+" into the builder.", pubOk:true});
+  }
+
   publishSet(){
     const st=this.state;
-    let questions;
-    try{ questions=JSON.parse((st.dJson||"").trim() || "[]"); }
-    catch(e){ this.setState({pubMsg:"Questions are not valid JSON.",pubOk:false}); return; }
+    const problems=this.builderErrors();
+    if(problems.length){ this.setState({pubMsg:problems[0],pubOk:false}); return; }
+    const questions=this.buildQuestions();
     const en=(st.dTitleEn||"").trim();
     const set={ id:(st.dId||"").trim().toLowerCase(),
       title:{en:en, rw:(st.dTitleRw||"").trim()||en, ar:(st.dTitleAr||"").trim()||en},
@@ -818,7 +980,8 @@ class Component extends DCLogic {
         this.setState({ dId:x.id, dTitleEn:(x.title&&x.title.en)||"", dTitleRw:(x.title&&x.title.rw)||"",
           dTitleAr:(x.title&&x.title.ar)||"", dSecs:x.secondsPerQuestion||SECS,
           dOpens:dtLocal(new Date(x.opensAt)), dCloses:dtLocal(new Date(x.closesAt)),
-          dJson:JSON.stringify(x.questions||[],null,2), pubMsg:"Loaded into the form.",pubOk:true });
+          qList:(x.questions||[]).length ? (x.questions||[]).map(normQ) : [blankQ()], qIdx:0,
+          dJson:JSON.stringify(x.questions||[],null,2), pubMsg:"Loaded into the builder.",pubOk:true });
         window.scrollTo(0,0);
       })
       .catch(err=>this.setState({pubMsg:err.message||"Could not load that set.",pubOk:false}));
@@ -1018,8 +1181,50 @@ class Component extends DCLogic {
       setDCloses:(e)=>this.setState({dCloses:e.target.value}),
       setDSecs:(e)=>this.setState({dSecs:e.target.value}),
       setDJson:(e)=>this.setState({dJson:e.target.value}),
-      jsonStatus: jsonErr || (parsedQs.length+" question"+(parsedQs.length===1?"":"s")+" parsed"),
-      jsonColor: jsonErr ? "var(--bad)" : "var(--ok)",
+      showJson:s.showJson, toggleJson:()=>this.setState({showJson:!s.showJson}),
+      jsonToggleLabel: s.showJson ? "Hide" : "Show",
+      doImportJson:()=>this.importJson(),
+      jsonStatus: jsonErr || (parsedQs.length+" question"+(parsedQs.length===1?"":"s")+" in the box"),
+      jsonColor: jsonErr ? "var(--bad)" : "var(--mute)",
+      editLang:s.editLang,
+      langTabs:[{k:"en",label:"English"},{k:"rw",label:"Kinyarwanda"},{k:"ar",label:"العربية"}].map(L=>({
+        label:L.label,
+        bg: s.editLang===L.k ? "var(--green)" : "var(--surface2)",
+        color: s.editLang===L.k ? "#fff" : "var(--mute)",
+        border: s.editLang===L.k ? "var(--green)" : "var(--line)",
+        pick: ()=>this.setState({editLang:L.k}) })),
+      qCount: s.qList.length,
+      qPos: (s.qIdx+1)+" of "+s.qList.length,
+      qChips: s.qList.map((qq,i)=>({
+        n: String(i+1),
+        bg: i===s.qIdx ? "var(--green)" : ((qq.q.en||"").trim() ? "var(--surface2)" : "transparent"),
+        color: i===s.qIdx ? "#fff" : ((qq.q.en||"").trim() ? "var(--ink)" : "var(--mute)"),
+        border: i===s.qIdx ? "var(--green)" : "var(--line)",
+        go: ()=>this.gotoQ(i) })),
+      qText: (this.curQ().q[s.editLang]||""),
+      setQText: (e)=>{ const v=e.target.value; this.updQ(q=>{ q.q[s.editLang]=v; }); },
+      qExp: (this.curQ().e[s.editLang]||""),
+      setQExp: (e)=>{ const v=e.target.value; this.updQ(q=>{ q.e[s.editLang]=v; }); },
+      qDir: s.editLang==="ar" ? "rtl" : "ltr",
+      qFont: s.editLang==="ar" ? "'Noto Kufi Arabic',sans-serif" : "inherit",
+      qOptions: (this.curQ().o.en||[]).map((_,j)=>{
+        const cur=this.curQ();
+        const isC = cur.c===j;
+        return {
+          value: (cur.o[s.editLang]||[])[j] || "",
+          ring: isC ? "var(--ok)" : "var(--line)",
+          fill: isC ? "var(--ok)" : "transparent",
+          mark: ()=>this.updQ(q=>{ q.c=j; }),
+          set: (e)=>{ const v=e.target.value; this.updQ(q=>{ q.o[s.editLang][j]=v; }); },
+          drop: ()=>this.removeOpt(j) };
+      }),
+      addOption:()=>this.addOpt(),
+      addQuestion:()=>this.addQuestion(),
+      removeQuestion:()=>this.removeQuestion(),
+      prevQ:()=>this.gotoQ(s.qIdx-1), nextQ:()=>this.gotoQ(s.qIdx+1),
+      builderProblems: this.builderErrors().length
+        ? this.builderErrors()[0] + (this.builderErrors().length>1 ? "  (+"+(this.builderErrors().length-1)+" more)" : "")
+        : "",
       pubMsg:s.pubMsg, pubColor: s.pubOk ? "var(--ok)" : "var(--bad)",
       heroMsg:s.heroMsg, heroColor: s.heroOk ? "var(--ok)" : "var(--bad)",
       publishLabel: s.sets.some(x=>x.id===(s.dId||"").trim().toLowerCase()) ? "Update set" : "Publish set",
