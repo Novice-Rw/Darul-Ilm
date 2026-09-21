@@ -33,7 +33,8 @@ export default async function handler(req, res) {
       doc.hero = null;
       await put(BLOB_PATH, JSON.stringify(doc), {
         access: "public", addRandomSuffix: false,
-        contentType: "application/json", allowOverwrite: true
+        contentType: "application/json", allowOverwrite: true,
+        cacheControlMaxAge: 60
       });
       if (old) { try { await del(old); } catch { /* already gone */ } }
       return res.status(200).json({ ok: true, hero: null });
