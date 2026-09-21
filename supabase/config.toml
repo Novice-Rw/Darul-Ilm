@@ -1,0 +1,25 @@
+# Auth configuration for the linked project. Pushed with: supabase config push
+# Values are set explicitly rather than left to CLI defaults, because a push
+# sends the whole file and anything omitted would be defaulted.
+project_id = "hgervkxkfybciqnzlswd"
+
+[auth]
+enabled = true
+site_url = "https://challenge.darul-ilm.com"
+additional_redirect_urls = ["https://challenge.darul-ilm.com"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+# Must stay true: disable_signup blocks anonymous sign-ins as well, which
+# would break grading. A stranger who signs up is only "authenticated" and,
+# without a row in public.hosts, can neither read answers nor write anything.
+enable_signup = true
+# Visitors need an identity so grading can be one attempt each. There is no
+# sign-up form; the app creates this silently when an attempt is submitted.
+enable_anonymous_sign_ins = true
+
+[auth.email]
+# Email signup stays on for the same reason, but now requires a verified
+# address rather than auto-confirming whatever is typed.
+enable_signup = true
+enable_confirmations = true
