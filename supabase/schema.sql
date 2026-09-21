@@ -165,7 +165,10 @@ grant select on public.site_settings    to anon, authenticated;
 grant update on public.site_settings    to authenticated;
 grant all    on public.question_sets    to authenticated;
 grant all    on public.questions        to authenticated;
-grant usage, select on all sequences in schema public to authenticated;
+-- Scoped to this app's own sequence. Never "all sequences in schema public":
+-- in a database that hosts anything else, that would hand out privileges on
+-- tables belonging to other applications.
+grant usage, select on sequence public.questions_id_seq to authenticated;
 
 grant execute on function public.grade_attempt(text, jsonb) to anon, authenticated;
 
