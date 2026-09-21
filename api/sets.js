@@ -7,7 +7,11 @@ export async function readDoc() {
   const { blobs } = await list({ prefix: BLOB_PATH, limit: 1 });
   const hit = blobs.find(b => b.pathname === BLOB_PATH);
   if (!hit) return emptyDoc();
-  const r = await fetch(hit.url, { cache: "no-store" });
+  // Blob serves public URLs with a one-year max-age. This document is
+  // overwritten in place at a fixed URL, so the read must defeat that cache
+  // or the API returns a stale copy of the sets.
+  const fresh = hit.url + (hit.url.includes("?") ? "&" : "?") + "v=" + Date.now();
+  const r = await fetch(fresh, { cache: "no-store" });
   if (!r.ok) return emptyDoc();
   try { return await r.json(); } catch { return emptyDoc(); }
 }

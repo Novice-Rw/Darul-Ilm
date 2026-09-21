@@ -79,7 +79,8 @@ export default async function handler(req, res) {
     doc.sets.sort((a, b) => Date.parse(b.opensAt) - Date.parse(a.opensAt));
     await put(BLOB_PATH, JSON.stringify(doc), {
       access: "public", addRandomSuffix: false,
-      contentType: "application/json", allowOverwrite: true
+      contentType: "application/json", allowOverwrite: true,
+      cacheControlMaxAge: 60
     });
     return res.status(200).json({ ok: true, sets: doc.sets.length });
   } catch (e) {

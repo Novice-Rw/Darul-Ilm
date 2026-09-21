@@ -62,7 +62,8 @@ export default async function handler(req, res) {
     doc.hero = url;
     await put(BLOB_PATH, JSON.stringify(doc), {
       access: "public", addRandomSuffix: false,
-      contentType: "application/json", allowOverwrite: true
+      contentType: "application/json", allowOverwrite: true,
+      cacheControlMaxAge: 60
     });
 
     if (previous) { try { await del(previous); } catch { /* already gone */ } }
