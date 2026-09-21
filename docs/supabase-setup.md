@@ -44,8 +44,9 @@ reads that hit Supabase rather than a Vercel edge cache. If you only ever wanted
 ## Step 2 — Create the schema
 
 1. In the left sidebar open **SQL Editor** → **New query**.
-2. Paste the entire contents of [`supabase/schema.sql`](../supabase/schema.sql).
-3. Press **Run**.
+2. Paste the entire contents of [`supabase/schema.sql`](../supabase/schema.sql) and **Run**.
+3. Open another query, paste [`supabase/hardening.sql`](../supabase/hardening.sql) and **Run**.
+   This one is not optional — without it the grading function leaks the answer key.
 
 You should see `Success. No rows returned`. Notices about policies that "do not exist,
 skipping" are normal on a first run — the file is written to be safe to re-run.
@@ -76,6 +77,16 @@ To add another host later, repeat steps 1–4. To revoke one:
 ```sql
 delete from public.hosts where user_id = 'THEIR-UID';
 ```
+
+## Step 3b — Turn on anonymous sign-ins
+
+**Required.** Grading is one attempt per identity, so every visitor needs an
+`auth.uid()`. Anonymous sign-in gives them one invisibly — there is no sign-up form
+and the "no sign-up" promise on the landing page still holds.
+
+Sidebar → **Authentication** → **Sign In / Providers** → **Anonymous sign-ins** → enable.
+
+Without it, submitting an attempt fails with *"Sign in before submitting an attempt"*.
 
 ## Step 4 — Confirm the storage bucket
 
@@ -133,21 +144,53 @@ If the first line returns rows instead of failing, stop and re-run `schema.sql`.
 
 ## What the schema guarantees
 
-These were each checked against PostgreSQL 16 before this guide was written:
+Each of these was run against the live project, not just a local database:
 
-| Check | Result |
+| Attack | Result |
 |---|---|
-| `public_questions` columns | `id, set_id, position, prompt, options` — no `correct_index` |
-| Visitor reads `questions` directly | `ERROR: permission denied for table questions` |
-| Visitor reads `question_sets` directly | `ERROR: permission denied for table question_sets` |
-| Questions of a not-yet-open set | invisible through the view |
-| `grade_attempt` on 2-of-3 correct | `score: 2, total: 3` with per-question detail |
-| `grade_attempt` with no answers | `score: 0` |
-| `grade_attempt` on an unopened set | `ERROR: That set has not opened yet` |
-| `grade_attempt` on a missing set | `ERROR: No such set: nope` |
+| Visitor reads `questions` | `42501 permission denied` |
+| Visitor reads `question_sets` | `42501 permission denied` |
+| **Signed-in** non-host reads `questions` | `42501 permission denied` |
+| Non-host calls `publish_set` | `403 Not authorised` |
+| Non-host calls `host_set_detail` | `403 Not authorised` |
+| Non-host calls `set_hero` | `403 Not authorised` |
+| Non-host adds themselves to `hosts` | `42501 permission denied` |
+| Non-host edits `site_settings` | blocked by RLS, hero unchanged |
+| Anon calls `publish_set` | `401 permission denied for function` |
+| `grade_attempt` with an empty submission | `28000 Sign in before submitting` |
+| Second `grade_attempt` with better answers | replays the first score, does not regrade |
+| `grade_attempt` while the round is live | returns `is_right` only — no `correct`, no `explanation` |
+| `answer_key()` while the round is open | `23514 That set is still open` |
+| Host publishes a valid set | `{"ok": true, "questions": 2}` |
+| Host publishes `id = "BAD ID"` | rejected |
+| Host publishes `c` outside the options | rejected |
 
-The storage-bucket policies at the end of the file are the exception: they can only run
-inside Supabase, so they are not covered by that test run.
+### Why grading is one shot
+
+`grade_attempt` used to regrade on every call, and calling it with `{}` returned every
+correct answer and explanation. The anon key that permits the call ships in every
+browser, so that was a full answer dump for anyone who looked.
+
+Any grading function that can be called repeatedly leaks the key, so the fix is not to
+hide the response but to limit the calls: the first submission is recorded in
+`attempts` and every later call replays it. Calling early now burns your one attempt.
+
+`site_settings.reveal_answers` controls when the key appears — `after_close` (the
+default, and airtight) or `immediate`. Change it with:
+
+```sql
+select public.set_reveal_policy('immediate');
+```
+
+### Why hosts write through functions
+
+The base tables are unreachable to `anon` and `authenticated`. Hosts publish through
+`publish_set`, `delete_set`, `host_sets`, `host_set_detail`, `set_hero` and
+`set_reveal_policy`, each of which checks `is_host()` first.
+
+This matters because anonymous sign-ins make **every visitor** `authenticated`. Granting
+that role table privileges would leave the answers protected by RLS alone — one policy
+mistake from exposure — and `TRUNCATE` is not filtered by RLS at all.
 
 ## How the data maps across
 

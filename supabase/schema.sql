@@ -172,6 +172,16 @@ grant usage, select on sequence public.questions_id_seq to authenticated;
 
 grant execute on function public.grade_attempt(text, jsonb) to anon, authenticated;
 
+-- service_role bypasses RLS but is still subject to table GRANTs, so the
+-- server-side key needs these explicitly or admin writes fail with 42501.
+grant all on public.question_sets to service_role;
+grant all on public.questions     to service_role;
+grant all on public.site_settings to service_role;
+grant all on public.hosts         to service_role;
+grant usage, select on sequence public.questions_id_seq to service_role;
+grant execute on function public.grade_attempt(text, jsonb) to service_role;
+grant execute on function public.is_host() to service_role;
+
 -- ------------------------------------------------------- storage bucket --
 -- Run this part in Supabase too. It is not covered by the local test run,
 -- because the storage schema only exists inside Supabase.
