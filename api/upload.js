@@ -1,5 +1,5 @@
 // Hero background upload. Raw image bytes in the body; requires the host cookie.
-import { put } from "@vercel/blob";
+import { put, del } from "@vercel/blob";
 import { BLOB_PATH, requireAuth } from "./_lib.js";
 import { readDoc } from "./sets.js";
 
@@ -24,7 +24,25 @@ function readRaw(req) {
 
 export default async function handler(req, res) {
   if (!requireAuth(req, res)) return;
-  if (req.method !== "POST") return res.status(405).json({ error: "Use POST." });
+
+  // Clear the hero photo and put the gradient-only background back.
+  if (req.method === "DELETE") {
+    try {
+      const doc = await readDoc();
+      const old = doc.hero;
+      doc.hero = null;
+      await put(BLOB_PATH, JSON.stringify(doc), {
+        access: "public", addRandomSuffix: false,
+        contentType: "application/json", allowOverwrite: true
+      });
+      if (old) { try { await del(old); } catch { /* already gone */ } }
+      return res.status(200).json({ ok: true, hero: null });
+    } catch (e) {
+      return res.status(500).json({ error: e?.message || "Could not clear the photo." });
+    }
+  }
+
+  if (req.method !== "POST") return res.status(405).json({ error: "Use POST or DELETE." });
 
   const type = (req.headers["content-type"] || "").split(";")[0].trim();
   const ext = OK_TYPES[type];
@@ -40,12 +58,14 @@ export default async function handler(req, res) {
     });
 
     const doc = await readDoc();
+    const previous = doc.hero;
     doc.hero = url;
     await put(BLOB_PATH, JSON.stringify(doc), {
       access: "public", addRandomSuffix: false,
       contentType: "application/json", allowOverwrite: true
     });
 
+    if (previous) { try { await del(previous); } catch { /* already gone */ } }
     return res.status(200).json({ ok: true, hero: url });
   } catch (e) {
     return res.status(400).json({ error: e?.message || "Upload failed." });
