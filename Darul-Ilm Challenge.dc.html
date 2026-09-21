@@ -903,7 +903,7 @@ class Component extends DCLogic {
       setsLoaded:s.setsLoaded,
       hasLive: !!lv, noLive: s.setsLoaded && !lv,
       liveTitle: lv ? ((lv.title && (lv.title[lang]||lv.title.en)) || "") : "",
-      liveMeta: lv ? ((lv.questions||[]).length+" "+t.questionsWord+" · "+(lv.secondsPerQuestion||SECS)+"s "+t.eachWord) : "",
+      liveMeta: lv ? (((lv.count != null ? lv.count : (lv.questions||[]).length))+" "+t.questionsWord+" · "+(lv.secondsPerQuestion||SECS)+"s "+t.eachWord) : "",
       liveCountdown: lv ? (Number.isFinite(Date.parse(lv.closesAt)) && Date.parse(lv.closesAt) < 4102444800000
         ? t.closesIn+" "+fmtDur(Date.parse(lv.closesAt)-s.now) : "") : "",
       hasHero: !!s.hero, heroUrl: s.hero || "",
