@@ -10,12 +10,24 @@ Developed by **Novice**.
 
 | Path | What it is |
 |---|---|
-| `Darul-Ilm Challenge.dc.html` | Design source (edit this) |
+| `Darul-Ilm Challenge.dc.html` | Design source — **edit this** |
+| `tools/build-dist.py` | Rebuilds `dist/index.html` from the design source |
+| `tools/fonts-inline.html` | The bundler's inlined @font-face css, used by the build |
 | `support.js` | Runtime for the design file |
-| `image-slot.js` | Background photo drop slot |
+| `image-slot.js` | Design-time image drop slot |
 | `assets/darul-ilm-logo.jpeg` | Logo |
-| `dist/index.html` | Self-contained build — deploy this |
+| `dist/index.html` | Built page — deployed, **generated, do not hand-edit** |
+| `api/` | Serverless routes: read sets, host auth, publish, hero upload |
 | `vercel.json` | Vercel static config |
+
+After editing the design source, run:
+
+```bash
+python3 tools/build-dist.py
+```
+
+That regenerates the app template inside `dist/index.html`. Editing `dist/index.html`
+by hand will be overwritten on the next build.
 
 ## Screens
 
@@ -28,29 +40,65 @@ Developed by **Novice**.
 
 ## The host door (do not publish)
 
-The host portal is not linked anywhere in the UI. Two ways in:
+The host portal is not linked from the landing page for visitors, but there is now a
+**Host** button in the nav, plus two older ways in: tap the logo five times within ~1.8s,
+or open the site with `#host` in the URL.
 
-1. Tap the **DARUL-ILM logo 5 times within ~1.8 seconds**.
-2. Open the site with **`#host`** in the URL — e.g. `https://challenge.darul-ilm.com/#host`.
+Access is checked **server-side**. `POST /api/auth` compares the passphrase against the
+SHA-256 in the `HOST_PASS_HASH` environment variable and, on success, sets a signed
+HttpOnly cookie that lasts 8 hours. Every write route re-checks that cookie, so reaching
+the console UI grants nothing by itself — the passphrase never ships to the browser.
 
-Both land on the passphrase gate. The passphrase is **not stored in this repo** — only its
-SHA-256 hash, in `HOST_PASS_SHA256`. To change it:
+To change the passphrase, set a new hash and redeploy:
 
 ```bash
 printf '%s' 'your new passphrase' | shasum -a 256
+vercel env add HOST_PASS_HASH production
 ```
 
-Paste the hash into `HOST_PASS_SHA256` in **both** `Darul-Ilm Challenge.dc.html` and
-`dist/index.html`. Never commit the passphrase itself.
+## How publishing works
 
-> **This is obfuscation, not security.** The check runs in the browser, so anyone willing to read
-> the bundle can bypass the gate entirely. It stops casual access, nothing more. Do not treat
-> unpublished questions as confidential until the server-side check below is built.
+A **question set** is one JSON document:
 
-Inside the console: visual question builder (all ten question types, three language fields per
-question, correct-answer marking, explanation), per-set timer, CSV/JSON bulk import, published-set
-list, and the **Landing background** slot — drop the mosque photo there; it is blurred and blended
-behind the hero automatically.
+```json
+{
+  "id": "swala-round-1",
+  "title": { "en": "…", "rw": "…", "ar": "…" },
+  "opensAt": "2026-09-21T18:00:00Z",
+  "closesAt": "2026-09-28T18:00:00Z",
+  "secondsPerQuestion": 30,
+  "questions": [ { "c": 2, "q": {…}, "o": {…}, "e": {…} } ]
+}
+```
+
+A set's state is **derived from the clock**, never stored, so it opens and closes on its
+own with no cron job and nothing to switch by hand:
+
+| State | Condition | What visitors see |
+|---|---|---|
+| `scheduled` | `now < opensAt` | Nothing on the landing page yet |
+| `live` | `opensAt ≤ now < closesAt` | Title, question count, a countdown, and **Begin** |
+| `closed` | `now ≥ closesAt` | "New questions soon" plus a link to the repository |
+
+Closed sets move into the repository automatically, with their answer keys. There is no
+separate archive to maintain.
+
+Two different durations, easy to confuse:
+
+- **`secondsPerQuestion`** — the countdown on each individual question.
+- **`opensAt` → `closesAt`** — how long the whole set stays available.
+
+All published sets live in one JSON blob, `data/sets.json`, in Vercel Blob. `GET /api/sets`
+returns it with `s-maxage=30`, so the edge cache serves repeat visitors and the function
+runs at most about twice a minute.
+
+### Environment variables
+
+| Name | What it is |
+|---|---|
+| `HOST_PASS_HASH` | SHA-256 hex of the host passphrase |
+| `HOST_SECRET` | Random string used to sign the session cookie |
+| `BLOB_READ_WRITE_TOKEN` | Added automatically when a Blob store is connected |
 
 ## Run locally
 
