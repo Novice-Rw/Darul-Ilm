@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet" />
+<script src="./image-slot.js"></script>
+<style>
+:root{
+  --bg:#070f0c; --surface:#0d1a15; --surface2:#11231c; --line:rgba(255,255,255,.10);
+  --ink:#f1f5f2; --mute:#95a49d; --green:#2a8464; --green-ink:#7fd8b4; --gold:#d9a12a;
+  --ok:#3fbf8a; --ok-soft:rgba(63,191,138,.14); --bad:#e8604f; --bad-soft:rgba(232,96,79,.14);
+  --shadow:0 20px 60px rgba(0,0,0,.45);
+}
+:root[data-theme="light"]{
+  --bg:#f6f8f6; --surface:#ffffff; --surface2:#f0f4f1; --line:rgba(11,59,46,.13);
+  --ink:#0a1511; --mute:#5d6d66; --green:#0b3b2e; --green-ink:#0b3b2e; --gold:#9c7212;
+  --ok:#17845d; --ok-soft:rgba(23,132,93,.10); --bad:#c0392b; --bad-soft:rgba(192,57,43,.09);
+  --shadow:0 18px 50px rgba(11,59,46,.10);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink)}
+body{font-family:'Manrope',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--gold);text-decoration:none}
+a:hover{color:var(--ink)}
+button{font-family:inherit}
+@keyframes riseIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@media print{
+  .np{display:none !important}
+  html,body{background:#fff;color:#000}
+  :root{--bg:#fff;--surface:#fff;--surface2:#fff;--ink:#111;--mute:#555;--line:#ddd;--shadow:none}
+}
+</style>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#070f0c"/><circle cx="50" cy="50" r="27" fill="#0b3b2e"/><text x="50" y="59" text-anchor="middle" font-family="Georgia,serif" font-size="22" fill="#d9a12a">DI</text></svg></template>
+</helmet>
+<div dir="{{ dir }}" style="position:relative;overflow-x:hidden;min-height:100svh;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);font-family:'Manrope',system-ui,sans-serif">
+
+  <div class="np" style="position:fixed;inset:0;z-index:0;overflow:hidden;max-width:100vw">
+    <div style="position:absolute;top:-8%;bottom:-8%;right:-6%;width:72%;filter:blur(18px) saturate(.8);opacity:.85;-webkit-mask-image:linear-gradient(to left, rgba(0,0,0,1) 18%, rgba(0,0,0,.55) 55%, rgba(0,0,0,0) 92%);mask-image:linear-gradient(to left, rgba(0,0,0,1) 18%, rgba(0,0,0,.55) 55%, rgba(0,0,0,0) 92%)">
+      <image-slot id="dil-bg" shape="rect" fit="cover" placeholder=" " style="pointer-events:none"></image-slot>
+    </div>
+    <div style="position:absolute;inset:0;background:color-mix(in srgb, var(--bg) 78%, transparent);pointer-events:none"></div>
+    <div style="position:absolute;top:-20%;right:-10%;width:70%;height:90%;border-radius:50%;background:radial-gradient(circle at 60% 40%, color-mix(in srgb, var(--green) 40%, transparent), transparent 70%);filter:blur(60px);pointer-events:none"></div>
+  </div>
+
+  <header class="np" style="position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:12px clamp(14px,4vw,48px);background:color-mix(in srgb, var(--bg) 86%, transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)">
+    <div onClick="{{ brandTap }}" style="display:flex;align-items:center;gap:10px;cursor:pointer;min-width:0;flex:1 1 auto">
+      <img src="assets/darul-ilm-logo.jpeg" alt="Darul-Ilm" style="width:38px;height:38px;border-radius:9px;object-fit:cover;object-position:center 42%;border:1px solid var(--line)" />
+      <div style="display:flex;flex-direction:column;line-height:1.05;min-width:0">
+        <span style="font-family:'Cormorant Garamond',serif;font-size:clamp(16px,4.2vw,19px);font-weight:600;letter-spacing:.12em;white-space:nowrap">DARUL-ILM</span>
+        <span style="font-family:'Amiri',serif;font-size:11px;letter-spacing:.14em;color:var(--gold);white-space:nowrap;direction:rtl">دَارُ العلم</span>
+      </div>
+    </div>
+    <div style="flex:1"></div>
+    <nav style="display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:4px">
+      <button onClick="{{ goHome }}" style="background:none;border:none;color:var(--mute);font-size:13px;padding:8px 12px;border-radius:8px;cursor:pointer" style-hover="color:var(--ink);background:var(--surface2)">{{ t.navHome }}</button>
+      <button onClick="{{ goRepo }}" style="background:none;border:none;color:var(--mute);font-size:13px;padding:8px 12px;border-radius:8px;cursor:pointer" style-hover="color:var(--ink);background:var(--surface2)">{{ t.navRepo }}</button>
+      <button onClick="{{ toggleTheme }}" title="Theme" style="width:36px;height:36px;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;color:var(--ink);font-size:14px;cursor:pointer;margin-inline-start:6px" style-hover="border-color:var(--gold)">{{ themeIcon }}</button>
+    </nav>
+  </header>
+
+  <main style="position:relative;z-index:1;flex:1;display:flex;flex-direction:column">
+
+    <sc-if value="{{ isLanding }}" hint-placeholder-val="{{ true }}">
+      <section style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:clamp(32px,7vw,88px) clamp(18px,5vw,40px);text-align:center;animation:riseIn .5s ease both">
+        <div style="font-family:'Amiri',serif;font-size:clamp(17px,3.4vw,22px);color:var(--gold);margin-bottom:22px;direction:rtl">بسم الله الرحمن الرحيم</div>
+        <h1 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:clamp(36px,7.4vw,74px);line-height:1.02;letter-spacing:-.01em;margin:0;max-width:16ch;text-wrap:pretty">{{ t.heroTitle }}</h1>
+        <p style="font-family:'Cormorant Garamond',serif;font-size:clamp(17px,3vw,24px);line-height:1.4;margin:16px 0 0;max-width:34ch;color:var(--gold);text-wrap:pretty">{{ t.heroLine }}</p>
+
+        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:28px 0 0">
+          <span style="font-size:12px;letter-spacing:.06em;color:var(--mute);padding:7px 14px;border:1px solid var(--line);border-radius:999px;background:var(--surface)">{{ t.chip1 }}</span>
+          <span style="font-size:12px;letter-spacing:.06em;color:var(--mute);padding:7px 14px;border:1px solid var(--line);border-radius:999px;background:var(--surface)">{{ t.chip3 }}</span>
+        </div>
+
+        <div style="margin:44px 0 0;display:flex;flex-direction:column;align-items:center;gap:14px">
+          <span style="font-size:11px;letter-spacing:.26em;color:var(--mute);text-transform:uppercase">{{ t.pickLang }}</span>
+          <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px">
+            <sc-for list="{{ langChoices }}" as="l" hint-placeholder-count="3">
+              <button onClick="{{ l.pick }}" style="min-height:52px;padding:0 24px;border-radius:14px;background:{{ l.bg }};border:1px solid {{ l.border }};color:{{ l.color }};font-size:15px;font-weight:500;cursor:pointer;transition:transform .15s ease,border-color .2s ease;font-family:{{ l.font }}" style-hover="transform:translateY(-2px);border-color:var(--gold)">{{ l.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <button onClick="{{ start }}" style="margin:34px 0 0;min-height:56px;padding:0 40px;border-radius:999px;border:none;background:var(--green);color:#fff;font-size:16px;font-weight:600;letter-spacing:.02em;cursor:pointer;box-shadow:var(--shadow);transition:transform .15s ease" style-hover="transform:translateY(-2px)">{{ t.start }}</button>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:14px;margin:62px 0 0;width:100%;max-width:820px;text-align:start">
+          <sc-for list="{{ steps }}" as="s" hint-placeholder-count="3">
+            <div style="padding:20px;border:1px solid var(--line);border-radius:16px;background:var(--surface)">
+              <div style="font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--gold);margin-bottom:8px">{{ s.n }}</div>
+              <div style="font-size:14.5px;font-weight:600;margin-bottom:5px">{{ s.title }}</div>
+              <div style="font-size:13px;color:var(--mute);line-height:1.5">{{ s.body }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ isQuiz }}">
+      <section style="flex:1;display:flex;flex-direction:column;align-items:center;padding:clamp(18px,4vw,40px) clamp(16px,5vw,40px) 40px;pointer-events:auto">
+        <div style="width:100%;max-width:760px;display:flex;flex-direction:column;gap:22px">
+
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:14px">
+            <div style="flex:1 1 200px;display:flex;flex-direction:column;gap:9px;min-width:0">
+              <div style="display:flex;justify-content:space-between;font-size:11.5px;letter-spacing:.18em;color:var(--mute);text-transform:uppercase">
+                <span>{{ counter }}</span>
+                <span>{{ answeredLabel }}</span>
+              </div>
+              <div style="height:4px;border-radius:999px;background:var(--surface2);overflow:hidden">
+                <div style="height:100%;width:{{ progressPct }};background:linear-gradient(90deg,var(--green),var(--gold));border-radius:999px;transition:width .35s ease"></div>
+              </div>
+            </div>
+            <sc-if value="{{ showTimer }}" hint-placeholder-val="{{ true }}">
+              <div style="width:54px;height:54px;flex:none;border-radius:50%;display:grid;place-items:center;border:2px solid {{ timerColor }};color:{{ timerColor }};font-size:15px;font-weight:600;font-variant-numeric:tabular-nums">{{ left }}</div>
+            </sc-if>
+          </div>
+
+          <div style="padding:clamp(20px,4vw,34px);border:1px solid var(--line);border-radius:22px;background:var(--surface);box-shadow:var(--shadow);animation:fadeIn .3s ease both">
+            <h2 style="font-family:{{ qFont }};font-weight:600;font-size:clamp(21px,3.6vw,30px);line-height:1.32;margin:0 0 22px;text-wrap:pretty">{{ q.text }}</h2>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <sc-for list="{{ q.opts }}" as="o" hint-placeholder-count="4">
+                <button onClick="{{ o.pick }}" style="display:flex;align-items:center;gap:14px;text-align:start;min-height:58px;padding:12px 18px;border-radius:14px;background:{{ o.bg }};border:1px solid {{ o.border }};color:var(--ink);font-size:15.5px;line-height:1.4;cursor:pointer;transition:border-color .18s ease,background .18s ease;font-family:{{ qFont }}" style-hover="border-color:var(--gold)">
+                  <span style="width:28px;height:28px;flex:none;border-radius:8px;display:grid;place-items:center;background:{{ o.badgeBg }};color:{{ o.badgeColor }};font-size:12.5px;font-weight:600">{{ o.letter }}</span>
+                  <span>{{ o.label }}</span>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:10px">
+            <button onClick="{{ prev }}" style="min-height:48px;padding:0 20px;border-radius:12px;background:none;border:1px solid var(--line);color:var(--mute);font-size:14px;cursor:pointer" style-hover="color:var(--ink);border-color:var(--gold)">{{ t.prev }}</button>
+            <div style="flex:1"></div>
+            <button onClick="{{ next }}" style="min-height:48px;padding:0 30px;border-radius:12px;border:none;background:var(--green);color:#fff;font-size:15px;font-weight:600;cursor:pointer" style-hover="background:var(--gold)">{{ nextLabel }}</button>
+          </div>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ isResults }}">
+      <section style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(28px,6vw,64px) clamp(16px,5vw,40px);animation:riseIn .45s ease both;pointer-events:auto">
+        <div style="width:100%;max-width:640px;display:flex;flex-direction:column;align-items:center;gap:26px;text-align:center">
+          <div style="font-size:11px;letter-spacing:.26em;color:var(--gold);text-transform:uppercase">{{ t.resultsEyebrow }}</div>
+          <div style="width:min(60vw,190px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--ok) {{ scoreDeg }}, var(--surface2) 0)">
+            <div style="width:78%;aspect-ratio:1;border-radius:50%;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px">
+              <span style="font-family:'Cormorant Garamond',serif;font-size:clamp(38px,9vw,56px);font-weight:600;line-height:1">{{ score }}</span>
+              <span style="font-size:13px;color:var(--mute)">{{ outOf }}</span>
+            </div>
+          </div>
+          <div style="font-size:clamp(16px,3vw,20px);font-family:'Cormorant Garamond',serif">{{ verdict }}</div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(36px,1fr));gap:7px;width:100%;max-width:460px">
+            <sc-for list="{{ cells }}" as="c" hint-placeholder-count="16">
+              <div style="height:42px;border-radius:10px;display:grid;place-items:center;font-size:13px;font-weight:600;background:{{ c.bg }};color:{{ c.color }};border:1px solid {{ c.border }}">{{ c.n }}</div>
+            </sc-for>
+          </div>
+          <div style="display:flex;gap:16px;font-size:12px;color:var(--mute)">
+            <span>● {{ t.legendRight }} {{ score }}</span>
+            <span>● {{ t.legendWrong }} {{ wrong }}</span>
+          </div>
+
+          <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px">
+            <button onClick="{{ goReview }}" style="min-height:52px;padding:0 26px;border-radius:999px;border:none;background:var(--green);color:#fff;font-size:15px;font-weight:600;cursor:pointer" style-hover="background:var(--gold)">{{ t.review }}</button>
+            <button onClick="{{ retake }}" style="min-height:52px;padding:0 26px;border-radius:999px;background:none;border:1px solid var(--line);color:var(--ink);font-size:15px;cursor:pointer" style-hover="border-color:var(--gold)">{{ t.retake }}</button>
+          </div>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ isReview }}">
+      <section style="flex:1;display:flex;flex-direction:column;align-items:center;padding:clamp(22px,5vw,48px) clamp(16px,5vw,40px) 60px;pointer-events:auto">
+        <div style="width:100%;max-width:820px;display:flex;flex-direction:column;gap:18px">
+          <div style="display:flex;flex-wrap:wrap;align-items:end;gap:14px;padding-bottom:18px;border-bottom:1px solid var(--line)">
+            <div style="flex:1;min-width:200px">
+              <div style="font-size:11px;letter-spacing:.26em;color:var(--gold);text-transform:uppercase">{{ t.answerKey }}</div>
+              <h2 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:clamp(26px,4.6vw,38px);margin:8px 0 0">{{ t.setTitle }}</h2>
+              <div style="font-size:13px;color:var(--mute);margin-top:6px">{{ scoreLine }}</div>
+            </div>
+            <div class="np" style="display:flex;flex-wrap:wrap;gap:8px">
+              <button onClick="{{ downloadPdf }}" style="min-height:48px;padding:0 22px;border-radius:12px;border:none;background:var(--green);color:#fff;font-size:14px;font-weight:600;cursor:pointer" style-hover="background:var(--gold)">{{ t.download }}</button>
+              <button onClick="{{ goResults }}" style="min-height:48px;padding:0 18px;border-radius:12px;background:none;border:1px solid var(--line);color:var(--mute);font-size:14px;cursor:pointer" style-hover="color:var(--ink)">{{ t.back }}</button>
+            </div>
+          </div>
+
+          <sc-for list="{{ rows }}" as="r" hint-placeholder-count="16">
+            <div style="display:flex;flex-wrap:wrap;gap:12px 16px;padding:clamp(14px,3.5vw,20px);border:1px solid var(--line);border-left:3px solid {{ r.accent }};border-radius:14px;background:var(--surface)">
+              <div style="width:30px;height:30px;flex:none;border-radius:9px;display:grid;place-items:center;background:{{ r.badgeBg }};color:{{ r.accent }};font-size:13px;font-weight:600">{{ r.n }}</div>
+              <div style="flex:1 1 220px;min-width:0">
+                <div style="font-family:{{ qFont }};font-size:clamp(15px,3.6vw,16.5px);font-weight:600;line-height:1.4;text-wrap:pretty">{{ r.q }}</div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
+                  <span style="font-size:13px;padding:6px 12px;border-radius:9px;background:{{ r.yourBg }};color:{{ r.yourColor }}">{{ r.yourLabel }}</span>
+                  <span style="font-size:13px;padding:6px 12px;border-radius:9px;background:var(--ok-soft);color:var(--ok)">{{ r.correctLabel }}</span>
+                </div>
+                <div style="font-size:13.5px;color:var(--mute);line-height:1.55;margin-top:12px;text-wrap:pretty">{{ r.exp }}</div>
+              </div>
+            </div>
+          </sc-for>
+
+          <div style="font-family:'Amiri',serif;text-align:center;color:var(--gold);font-size:17px;padding-top:18px;direction:rtl">اللهم علمنا ما ينفعنا</div>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ isRepo }}">
+      <section style="flex:1;padding:clamp(24px,5vw,56px) clamp(16px,5vw,40px) 70px;display:flex;justify-content:center;pointer-events:auto">
+        <div style="width:100%;max-width:1040px">
+          <div style="font-size:11px;letter-spacing:.26em;color:var(--gold);text-transform:uppercase">{{ t.navRepo }}</div>
+          <h2 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:clamp(28px,5.4vw,46px);margin:10px 0 8px">{{ t.repoTitle }}</h2>
+          <p style="color:var(--mute);font-size:15px;max-width:52ch;margin:0 0 30px;line-height:1.55">{{ t.repoSub }}</p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:14px">
+            <sc-for list="{{ topics }}" as="tp" hint-placeholder-count="6">
+              <div onClick="{{ tp.open }}" style="padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--surface);cursor:{{ tp.cursor }};display:flex;flex-direction:column;gap:12px;min-height:180px;transition:transform .16s ease,border-color .2s ease" style-hover="transform:translateY(-3px);border-color:var(--gold)">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+                  <span style="font-family:'Amiri',serif;font-size:20px;color:var(--gold);direction:rtl">{{ tp.ar }}</span>
+                  <span style="font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;padding:5px 10px;border-radius:999px;background:{{ tp.tagBg }};color:{{ tp.tagColor }}">{{ tp.tag }}</span>
+                </div>
+                <div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;line-height:1.15">{{ tp.name }}</div>
+                <div style="font-size:13px;color:var(--mute);line-height:1.5;flex:1">{{ tp.sub }}</div>
+                <div style="font-size:12.5px;color:{{ tp.tagColor }};font-weight:600">{{ tp.cta }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ isAdmin }}">
+      <section style="flex:1;padding:clamp(24px,5vw,56px) clamp(16px,5vw,40px) 70px;display:flex;justify-content:center;pointer-events:auto">
+        <div style="width:100%;max-width:1040px">
+          <sc-if value="{{ needsPass }}">
+            <div style="max-width:380px;margin:6vh auto 0;padding:30px;border:1px solid var(--line);border-radius:20px;background:var(--surface);box-shadow:var(--shadow);text-align:center">
+              <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600">Host access</div>
+              <p style="font-size:13.5px;color:var(--mute);line-height:1.55;margin:8px 0 22px">Protected page. Enter the host passphrase to publish questions.</p>
+              <input type="password" value="{{ pass }}" onChange="{{ setPass }}" placeholder="Passphrase" style="width:100%;min-height:50px;padding:0 16px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:15px;font-family:inherit;outline:none" />
+              <button onClick="{{ submitPass }}" style="width:100%;min-height:50px;margin-top:10px;border-radius:12px;border:none;background:var(--green);color:#fff;font-size:15px;font-weight:600;cursor:pointer" style-hover="background:var(--gold)">Unlock</button>
+              <div style="font-size:11.5px;color:var(--mute);margin-top:14px">Demo passphrase: <span style="color:var(--gold)">darul-ilm</span></div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ adminAuthed }}">
+            <div style="display:flex;flex-wrap:wrap;align-items:end;gap:12px;margin-bottom:22px">
+              <div style="flex:1;min-width:220px">
+                <div style="font-size:11px;letter-spacing:.26em;color:var(--gold);text-transform:uppercase">Host console</div>
+                <h2 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:clamp(26px,5vw,40px);margin:8px 0 0">Build a question set</h2>
+              </div>
+              <button style="min-height:48px;padding:0 22px;border-radius:12px;border:none;background:var(--green);color:#fff;font-size:14px;font-weight:600;cursor:pointer" style-hover="background:var(--gold)">Publish set</button>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px;align-items:start">
+              <div style="padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--surface);display:flex;flex-direction:column;gap:16px">
+                <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)">New question</div>
+                <div style="display:flex;flex-direction:column;gap:7px">
+                  <label style="font-size:12.5px;color:var(--mute)">Type</label>
+                  <select value="{{ adminType }}" onChange="{{ setAdminType }}" style="min-height:48px;padding:0 14px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:14.5px;font-family:inherit">
+                    <sc-for list="{{ qTypes }}" as="ty" hint-placeholder-count="10">
+                      <option value="{{ ty }}">{{ ty }}</option>
+                    </sc-for>
+                  </select>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:10px">
+                  <div style="display:flex;flex-direction:column;gap:7px">
+                    <label style="font-size:12.5px;color:var(--mute)">Topic</label>
+                    <input value="Swala" style="min-height:48px;padding:0 14px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:14.5px;font-family:inherit;outline:none" />
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:7px">
+                    <label style="font-size:12.5px;color:var(--mute)">Timer (sec) · host-set</label>
+                    <input value="30" style="min-height:48px;padding:0 14px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:14.5px;font-family:inherit;outline:none" />
+                  </div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:9px">
+                  <label style="font-size:12.5px;color:var(--mute)">Question — all three languages</label>
+                  <input placeholder="English" style="min-height:48px;padding:0 14px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:14.5px;font-family:inherit;outline:none" />
+                  <input placeholder="Kinyarwanda" style="min-height:48px;padding:0 14px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:14.5px;font-family:inherit;outline:none" />
+                  <input placeholder="العربية" dir="rtl" style="min-height:48px;padding:0 14px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:14.5px;font-family:'Noto Kufi Arabic',sans-serif;outline:none" />
+                </div>
+                <div style="display:flex;flex-direction:column;gap:9px">
+                  <label style="font-size:12.5px;color:var(--mute)">Options · tap the circle to mark correct</label>
+                  <sc-for list="{{ adminOpts }}" as="ao" hint-placeholder-count="4">
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <div onClick="{{ ao.mark }}" style="width:22px;height:22px;flex:none;border-radius:50%;border:2px solid {{ ao.ring }};background:{{ ao.fill }};cursor:pointer"></div>
+                      <input value="{{ ao.value }}" style="flex:1;min-width:0;min-height:46px;padding:0 14px;border-radius:11px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:14px;font-family:inherit;outline:none" />
+                    </div>
+                  </sc-for>
+                  <button style="align-self:start;min-height:42px;padding:0 16px;border-radius:11px;background:none;border:1px dashed var(--line);color:var(--mute);font-size:13px;cursor:pointer" style-hover="color:var(--gold);border-color:var(--gold)">+ Add option</button>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:7px">
+                  <label style="font-size:12.5px;color:var(--mute)">Explanation shown in the answer key</label>
+                  <textarea rows="2" placeholder="Short reason the answer is correct" style="padding:12px 14px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:14px;font-family:inherit;outline:none;resize:vertical"></textarea>
+                </div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div style="padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--surface)">
+                  <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin-bottom:14px">Landing background</div>
+                  <div style="height:150px;border-radius:14px;overflow:hidden;border:1px solid var(--line)">
+                    <image-slot id="dil-bg" shape="rect" fit="cover" placeholder="Drop the mosque photo — blurred on the landing page"></image-slot>
+                  </div>
+                </div>
+                <div style="padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--surface)">
+                  <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin-bottom:14px">Bulk import</div>
+                  <div style="border:1px dashed var(--line);border-radius:14px;padding:26px 18px;text-align:center">
+                    <div style="font-size:14.5px;font-weight:600">Drop CSV or JSON</div>
+                    <div style="font-size:12.5px;color:var(--mute);margin-top:6px;line-height:1.5">One row per question · columns for each language · answer index · explanation</div>
+                    <button style="min-height:44px;margin-top:14px;padding:0 18px;border-radius:11px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:13.5px;cursor:pointer" style-hover="border-color:var(--gold)">Choose file</button>
+                  </div>
+                </div>
+                <div style="padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--surface)">
+                  <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin-bottom:12px">Published sets</div>
+                  <sc-for list="{{ adminSets }}" as="st" hint-placeholder-count="3">
+                    <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)">
+                      <div style="flex:1;min-width:0">
+                        <div style="font-size:14.5px;font-weight:600">{{ st.name }}</div>
+                        <div style="font-size:12px;color:var(--mute);margin-top:3px">{{ st.meta }}</div>
+                      </div>
+                      <span style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;padding:5px 10px;border-radius:999px;background:{{ st.tagBg }};color:{{ st.tagColor }}">{{ st.tag }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="padding:20px 22px;border:1px solid var(--line);border-radius:18px;background:var(--surface2);font-size:13px;color:var(--mute);line-height:1.6">
+                  <span style="color:var(--gold);font-weight:600">Recommended setup:</span> Vercel project on challenge.darul-ilm.com (CNAME from Namecheap), questions stored in a hosted Postgres or KV store, this page behind a single host passphrase plus a signed cookie. Ten question types supported: multiple choice, checkbox, short answer, paragraph, dropdown, rating, linear scale, checkbox grid, multiple-choice grid, date &amp; time.
+                </div>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </section>
+    </sc-if>
+  </main>
+
+  <footer class="np" style="position:relative;z-index:1;padding:22px clamp(16px,5vw,48px);border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;font-size:12px;color:var(--mute)">
+    <span>Darul-Ilm · darul-ilm.com</span>
+    <span>Developed by <span style="color:var(--gold);font-weight:600;letter-spacing:.04em">NOVICE</span></span>
+  </footer>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:900},&quot;secondsPerQuestion&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:30,&quot;min&quot;:10,&quot;max&quot;:120,&quot;step&quot;:5,&quot;unit&quot;:&quot;s&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Challenge&quot;},&quot;defaultLanguage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;en&quot;,&quot;rw&quot;,&quot;ar&quot;],&quot;default&quot;:&quot;en&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Challenge&quot;},&quot;startTheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Appearance&quot;},&quot;showTimer&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Challenge&quot;}}">
+const QS = [
+  {c:2,
+   q:{en:"How many prayers are obligatory each day?",rw:"Iswala zitegetswe ku munsi ni zingahe?",ar:"كم عدد الصلوات المفروضة في اليوم؟"},
+   o:{en:["3","4","5","7"],rw:["3","4","5","7"],ar:["٣","٤","٥","٧"]},
+   e:{en:"Five daily prayers: Fajr, Dhuhr, Asr, Maghrib and Isha.",rw:"Iswala eshanu: Fajr, Adhuhr, Asr, Magharibi na Isha.",ar:"خمس صلوات: الفجر والظهر والعصر والمغرب والعشاء."}},
+  {c:0,
+   q:{en:"How many rak'ahs does Fajr have?",rw:"Swalat Subuhi (Fajr) ifite raka'a zingahe?",ar:"كم ركعة في صلاة الفجر؟"},
+   o:{en:["2","3","4","5"],rw:["2","3","4","5"],ar:["٢","٣","٤","٥"]},
+   e:{en:"Fajr is two rak'ahs, recited aloud.",rw:"Fajr ni raka'a ebyiri, isomwa ijwi riranguruye.",ar:"الفجر ركعتان يُجهر فيهما بالقراءة."}},
+  {c:1,
+   q:{en:"How many rak'ahs does Maghrib have?",rw:"Swalat Magharibi ifite raka'a zingahe?",ar:"كم ركعة في صلاة المغرب؟"},
+   o:{en:["2","3","4","6"],rw:["2","3","4","6"],ar:["٢","٣","٤","٦"]},
+   e:{en:"Maghrib is three rak'ahs — the only odd-numbered obligatory prayer.",rw:"Magharibi ni raka'a eshatu — ni yo yonyine ifite umubare w'igiharwe.",ar:"المغرب ثلاث ركعات، وهي الفريضة الوترية."}},
+  {c:2,
+   q:{en:"Dhuhr, Asr and Isha — how many rak'ahs each?",rw:"Swalat Adhuhr, Asr na Isha buri imwe ifite raka'a zingahe?",ar:"الظهر والعصر والعشاء: كم ركعة لكل منها؟"},
+   o:{en:["2","3","4","5"],rw:["2","3","4","5"],ar:["٢","٣","٤","٥"]},
+   e:{en:"Each of these three is four rak'ahs.",rw:"Izi eshatu buri imwe ifite raka'a enye.",ar:"كل واحدة من هذه الثلاث أربع ركعات."}},
+  {c:1,
+   q:{en:"When was salah made obligatory?",rw:"Iswala yategetswe mu gihe ki?",ar:"متى فُرضت الصلاة؟"},
+   o:{en:["At the battle of Badr","On the night of Isra & Mi'raj","During the Hijra","In the month of Ramadan"],rw:["Mu ntambara ya Badr","Mu ijoro rya Isra'i wal Mi'iraji","Mu gihe cya Hijra","Mu kwezi kwa Ramadhan"],ar:["في غزوة بدر","في ليلة الإسراء والمعراج","في زمن الهجرة","في شهر رمضان"]},
+   e:{en:"Salah was ordained during the night journey and ascension.",rw:"Iswala yategetswe mu ijoro rya Isra'i wal Mi'iraji.",ar:"فُرضت الصلاة في ليلة الإسراء والمعراج."}},
+  {c:1,
+   q:{en:"What act begins the prayer?",rw:"Ni ikihe gikorwa gitangiza iswala?",ar:"بأي شيء تُفتتح الصلاة؟"},
+   o:{en:["Reciting Al-Fatiha","Takbiratul-Ihram (Allahu Akbar)","The Adhan","Du'a"],rw:["Gusoma Al-Fatiha","Takbiratul-Ihram (Allahu Akbar)","Adhan","Du'a"],ar:["قراءة الفاتحة","تكبيرة الإحرام (الله أكبر)","الأذان","الدعاء"]},
+   e:{en:"The prayer is entered with Takbiratul-Ihram.",rw:"Iswala itangizwa na Takbiratul-Ihram.",ar:"يُدخل في الصلاة بتكبيرة الإحرام."}},
+  {c:1,
+   q:{en:"Which direction does a Muslim face in prayer?",rw:"Umuslimu yerekeza he iyo aswali?",ar:"إلى أي جهة يتوجه المسلم في صلاته؟"},
+   o:{en:["Masjid an-Nabawi","The Ka'bah (Qibla) in Makkah","The east","Any direction"],rw:["Ku Masjid Nabawi","Ku Ka'aba (Qibla) i Makka","Iburasirazuba","Ahantu hose"],ar:["المسجد النبوي","الكعبة (القبلة) بمكة","جهة الشرق","أي جهة"]},
+   e:{en:"The Muslim faces the Ka'bah in Makkah.",rw:"Umuslimu yerekeza ku Ka'aba i Makka.",ar:"يتوجه المسلم إلى الكعبة بمكة."}},
+  {c:2,
+   q:{en:"Which surah must be recited in every rak'ah?",rw:"Ni iyihe sura igomba gusomwa muri buri raka'a?",ar:"أي سورة تُقرأ في كل ركعة؟"},
+   o:{en:["Al-Ikhlas","Al-Baqara","Al-Fatiha","An-Nas"],rw:["Al-Ikhlas","Al-Baqara","Al-Fatiha","An-Nas"],ar:["الإخلاص","البقرة","الفاتحة","الناس"]},
+   e:{en:"Al-Fatiha is recited in every rak'ah.",rw:"Al-Fatiha isomwa muri buri raka'a.",ar:"تُقرأ الفاتحة في كل ركعة."}},
+  {c:1,
+   q:{en:"What does a person do if they forget something in the prayer?",rw:"Iyo umuntu yibagiwe ikintu mu iswala akora iki?",ar:"ماذا يفعل من سها في صلاته؟"},
+   o:{en:["Repeat the whole prayer","Sujud as-Sahw (two prostrations)","Nothing at all","Give charity"],rw:["Agasubiramo iswala yose","Sujud As-Sahwi (sujud ebyiri)","Nta kintu akora","Agatanga sadaka"],ar:["يعيد الصلاة كلها","سجود السهو (سجدتان)","لا شيء","يتصدق"]},
+   e:{en:"Two prostrations of forgetfulness make up for the lapse.",rw:"Sujud ebyiri z'urwibutso zuzuza icyibagiranye.",ar:"سجدتا السهو تجبران النقص."}},
+  {c:1,
+   q:{en:"Which is a condition before praying?",rw:"Ni ikihe kimwe mu bisabwa (shuruti) mbere yo gusenga?",ar:"ما هو من شروط الصلاة؟"},
+   o:{en:["Being inside a mosque","Tahara — purity of body, clothes and place","Praying with others","Wearing white"],rw:["Kuba mu musigiti","Twahara: kuba usukuye kandi udahiye","Kuba uri kumwe n'abandi","Kwambara umweru"],ar:["أن يكون في المسجد","الطهارة من الحدث والنجاسة","أن يكون مع الجماعة","لبس الأبيض"]},
+   e:{en:"Purity of body, clothing and place is required.",rw:"Kuba usukuye ku mubiri, imyambaro n'ahantu ni ngombwa.",ar:"الطهارة شرط لصحة الصلاة."}},
+  {c:1,
+   q:{en:"A traveller shortening (Qasr) a four-rak'ah prayer prays:",rw:"Umusafiri ashobora kugabanya (Qasr) iswala z'amaraka'a 4 akazisali:",ar:"المسافر إذا قصر الصلاة الرباعية صلاها:"},
+   o:{en:["1 rak'ah","2 rak'ahs","3 rak'ahs","He may not shorten them"],rw:["Raka'a 1","Raka'a 2","Raka'a 3","Ntashobora kuzigabanya"],ar:["ركعة واحدة","ركعتين","ثلاث ركعات","لا يجوز القصر"]},
+   e:{en:"A traveller prays four-rak'ah prayers as two.",rw:"Umusafiri asali raka'a ebyiri aho kuba enye.",ar:"يصلي المسافر الرباعية ركعتين."}},
+  {c:0,
+   q:{en:"How many rak'ahs is Jumu'ah?",rw:"Swalat Jumu'a ifite raka'a zingahe?",ar:"كم ركعة في صلاة الجمعة؟"},
+   o:{en:["2","3","4","6"],rw:["2","3","4","6"],ar:["٢","٣","٤","٦"]},
+   e:{en:"Jumu'ah is two rak'ahs after the khutbah.",rw:"Jumu'a ni raka'a ebyiri nyuma ya khutba.",ar:"الجمعة ركعتان بعد الخطبة."}},
+  {c:1,
+   q:{en:"What ends the prayer?",rw:"Ni iki kirangiza iswala?",ar:"بماذا تُختم الصلاة؟"},
+   o:{en:["Takbir","Tasleem (As-salaamu alaykum wa rahmatullah)","Du'a","Ruku'"],rw:["Takbir","Tasliim (As-salaamu alaykum wa rahmatullah)","Du'a","Ruku'u"],ar:["التكبير","التسليم (السلام عليكم ورحمة الله)","الدعاء","الركوع"]},
+   e:{en:"The prayer is ended with the tasleem.",rw:"Iswala irangizwa na Tasliim.",ar:"تُختم الصلاة بالتسليم."}},
+  {c:1,
+   q:{en:"Which of these invalidates the prayer?",rw:"Ni ikihe muri ibi kivunaguza (kwangiza) iswala?",ar:"أي هذه الأمور يُبطل الصلاة؟"},
+   o:{en:["Reciting Qur'an","Speaking intentionally during the prayer","Prostrating","Reciting the tashahhud"],rw:["Gusoma Qur'an","Kuvuga nkana mu gihe cy'iswala","Gukora sujud","Gusoma tashahhud"],ar:["قراءة القرآن","الكلام عمدًا في الصلاة","السجود","قراءة التشهد"]},
+   e:{en:"Deliberate speech breaks the prayer.",rw:"Kuvuga nkana byangiza iswala.",ar:"الكلام العمد يُبطل الصلاة."}},
+  {c:1,
+   q:{en:"The one who calls people to prayer is called:",rw:"Uhamagarira abantu iswala yitwa:",ar:"من ينادي الناس للصلاة يسمى:"},
+   o:{en:["The Imam","The Mu'adhin","The Khatib","Only a mosque caretaker"],rw:["Imamu","Muadhin","Khatwibu","Muezzin w'umusigiti gusa"],ar:["الإمام","المؤذن","الخطيب","خادم المسجد فقط"]},
+   e:{en:"The one who gives the adhan is the Mu'adhin.",rw:"Uvuga adhan yitwa Muadhin.",ar:"من يؤذن يسمى المؤذن."}},
+  {c:1,
+   q:{en:"When does Dhuhr begin?",rw:"Swalat Adhuhr itangira ryari?",ar:"متى يبدأ وقت الظهر؟"},
+   o:{en:["Before sunrise","When the sun passes its zenith (zawal)","After full sunset","At midnight"],rw:["Mbere y'uko izuba rirasa","Iyo izuba rigeze hagati rikarenga (zawal)","Iyo izuba rirenze burundu","Mu ijoro rwagati"],ar:["قبل طلوع الشمس","إذا زالت الشمس عن كبد السماء","بعد الغروب","في منتصف الليل"]},
+   e:{en:"Dhuhr begins just after the sun crosses the meridian.",rw:"Adhuhr itangira iyo izuba rirenze hagati (zawal).",ar:"يبدأ الظهر بعد زوال الشمس."}}
+];
+
+const STR = {
+  en:{navHome:"Home",navRepo:"Repository",navAdmin:"Host",heroTitle:"Discover yourself through Islam.",
+    heroLine:"Uncover the depth of your faith, one question at a time.",
+    chip1:"THREE LANGUAGES",chip2:"",chip3:"NO SIGN-UP",pickLang:"Choose your language",start:"Begin",
+    prev:"Back",next:"Next",finish:"See my score",resultsEyebrow:"Your result",review:"Review answers",retake:"Try again",
+    legendRight:"Right",legendWrong:"Wrong",answerKey:"Answer key",setTitle:"Swala — the prayer",download:"Download PDF",back:"Back",
+    repoTitle:"Past question sets",repoSub:"Every set stays here with its answer key. New topics are added as the host posts them.",
+    yourAnswer:"You",correctAnswer:"Correct",noAnswer:"No answer",answered:"answered",of:"of",outOf:"out of",
+    verdictHigh:"Excellent — may Allah increase you in knowledge.",verdictMid:"Good effort. Review the key and try again.",verdictLow:"Keep learning — the answer key is below.",
+    live:"Live",soon:"Soon",open:"Start →",locked:"Coming soon"},
+  rw:{navHome:"Ahabanza",navRepo:"Ububiko",navAdmin:"Umwanditsi",heroTitle:"Imenye ubwawe unyuze mu Isilamu.",
+    heroLine:"Menya ubujyakuzimu bw'ukwemera kwawe, ikibazo ku kibazo.",
+    chip1:"INDIMI ESHATU",chip2:"",chip3:"NTA KWIYANDIKISHA",pickLang:"Hitamo ururimi",start:"Tangira",
+    prev:"Subira",next:"Ikurikira",finish:"Reba amanota",resultsEyebrow:"Amanota yawe",review:"Reba ibisubizo",retake:"Ongera ugerageze",
+    legendRight:"Byukuri",legendWrong:"Byibeshye",answerKey:"Ibisubizo",setTitle:"Iswala",download:"Kuramo PDF",back:"Subira",
+    repoTitle:"Ibibazo byahise",repoSub:"Buri seti iguma hano n'ibisubizo byayo. Ibindi bizaza uko umwanditsi abishyira.",
+    yourAnswer:"Wowe",correctAnswer:"Ukuri",noAnswer:"Nta gisubizo",answered:"byasubijwe",of:"kuri",outOf:"kuri",
+    verdictHigh:"Byiza cyane — Allah akwongere ubumenyi.",verdictMid:"Wakoze neza. Reba ibisubizo wongere ugerageze.",verdictLow:"Komeza wige — ibisubizo biri hasi.",
+    live:"Bihari",soon:"Biraza",open:"Tangira →",locked:"Biraza"},
+  ar:{navHome:"الرئيسية",navRepo:"الأرشيف",navAdmin:"المشرف",heroTitle:"اكتشف نفسك من خلال الإسلام.",
+    heroLine:"اكتشف عمق إيمانك، سؤالًا بعد سؤال.",
+    chip1:"ثلاث لغات",chip2:"",chip3:"بدون تسجيل",pickLang:"اختر لغتك",start:"ابدأ",
+    prev:"السابق",next:"التالي",finish:"أظهر نتيجتي",resultsEyebrow:"نتيجتك",review:"مراجعة الإجابات",retake:"أعد المحاولة",
+    legendRight:"صحيح",legendWrong:"خطأ",answerKey:"مفتاح الإجابات",setTitle:"الصلاة",download:"تحميل PDF",back:"رجوع",
+    repoTitle:"المجموعات السابقة",repoSub:"تبقى كل مجموعة هنا مع مفتاح إجاباتها، وتُضاف مواضيع جديدة كلما نشرها المشرف.",
+    yourAnswer:"إجابتك",correctAnswer:"الصواب",noAnswer:"بلا إجابة",answered:"مُجاب",of:"من",outOf:"من",
+    verdictHigh:"ممتاز — زادك الله علمًا.",verdictMid:"جيد. راجع الإجابات وأعد المحاولة.",verdictLow:"واصل التعلم — مفتاح الإجابات أدناه.",
+    live:"متاح",soon:"قريبًا",open:"ابدأ ←",locked:"قريبًا"}
+};
+
+const TOPICS = [
+  {name:{en:"Swala — the prayer",rw:"Iswala",ar:"الصلاة"},ar:"الصلاة",n:16,live:true,
+   sub:{en:"Rak'ahs, conditions, what breaks it.",rw:"Amaraka'a, ibisabwa, ibiyangiza.",ar:"الركعات والشروط والمبطلات."}},
+  {name:{en:"Twahara — purity",rw:"Twahara",ar:"الطهارة"},ar:"الطهارة",n:12,live:false,
+   sub:{en:"Wudhu, ghusl, tayammum.",rw:"Wudhu, ghusl, tayammum.",ar:"الوضوء والغسل والتيمم."}},
+  {name:{en:"Swaumu — fasting",rw:"Kwiyiriza ubusa",ar:"الصيام"},ar:"الصيام",n:14,live:false,
+   sub:{en:"Ramadan, its rulings and exemptions.",rw:"Ramadhani, amategeko n'ibisonewe.",ar:"رمضان وأحكامه ورخصه."}},
+  {name:{en:"Seerah",rw:"Seerah",ar:"السيرة"},ar:"السيرة",n:20,live:false,
+   sub:{en:"The life of the Prophet ﷺ.",rw:"Ubuzima bw'Intumwa ﷺ.",ar:"حياة النبي ﷺ."}},
+  {name:{en:"Qur'an",rw:"Qur'an",ar:"القرآن"},ar:"القرآن",n:18,live:false,
+   sub:{en:"Surahs, revelation, tajweed basics.",rw:"Sura, ihishurwa, tajweed.",ar:"السور والوحي ومبادئ التجويد."}},
+  {name:{en:"Zakat",rw:"Zakat",ar:"الزكاة"},ar:"الزكاة",n:10,live:false,
+   sub:{en:"Nisab, who gives, who receives.",rw:"Nisab, utanga n'uhabwa.",ar:"النصاب والمزكي والمستحق."}}
+];
+
+const TYPES = ["Multiple choice","Checkbox","Short answer","Paragraph","Dropdown","Rating","Linear scale","Checkbox grid","Multiple-choice grid","Date & time"];
+const SECS = 30;
+
+class Component extends DCLogic {
+  state = {theme:this.props.startTheme ?? "dark",screen:"landing",lang:this.props.defaultLanguage ?? "en",qi:0,answers:{},left:this.secs(),pass:"",adminAuthed:false,adminType:"Multiple choice",adminCorrect:2};
+
+  secs(){ return Math.max(5, Number(this.props.secondsPerQuestion) || SECS); }
+
+  componentDidMount(){
+    this.applyTheme(this.state.theme);
+    try{ if((location.hash||"").toLowerCase().indexOf("host")>-1) this.setState({screen:"admin"}); }catch(e){}
+  }
+  brandTap(){
+    const now=Date.now();
+    if(!this._taps || now-this._taps.t>1800) this._taps={n:0,t:now};
+    this._taps={n:this._taps.n+1,t:now};
+    if(this._taps.n>=5){ this._taps=null; this.setState({screen:"admin"}); return; }
+    clearTimeout(this._tapTo);
+    this._tapTo=setTimeout(()=>{ if(this._taps && this._taps.n<5) this.setState({screen:"landing"}); this._taps=null; },420);
+  }
+  componentWillUnmount(){ clearInterval(this._iv); }
+  applyTheme(t){ try{ document.documentElement.setAttribute("data-theme",t); }catch(e){} }
+
+  startTimer(){
+    clearInterval(this._iv);
+    this._iv = setInterval(()=>{
+      if(this.state.screen!=="quiz"){ clearInterval(this._iv); return; }
+      if(this.props.showTimer===false) return;
+      if(this.state.left<=1) this.advance(); else this.setState({left:this.state.left-1});
+    },1000);
+  }
+  advance(){
+    const i=this.state.qi;
+    if(i+1>=QS.length){ clearInterval(this._iv); this.setState({screen:"results"}); window.scrollTo(0,0); }
+    else this.setState({qi:i+1,left:this.secs()});
+  }
+  score(){ return QS.reduce((n,q,i)=> n + (this.state.answers[i]===q.c ? 1 : 0), 0); }
+
+  renderVals(){
+    const s=this.state, lang=s.lang, t=STR[lang], rtl=lang==="ar";
+    const qFont = rtl ? "'Noto Kufi Arabic',sans-serif" : "'Manrope',sans-serif";
+    const q=QS[s.qi], picked=s.answers[s.qi], answeredCount=Object.keys(s.answers).length;
+    const score=this.score(), last=s.qi===QS.length-1;
+    const num = n => rtl ? String(n).replace(/\d/g,d=>"٠١٢٣٤٥٦٧٨٩"[d]) : String(n);
+
+    return {
+      t, dir: rtl?"rtl":"ltr", qFont,
+      themeIcon: s.theme==="dark" ? "☾" : "☀",
+      isLanding:s.screen==="landing", isQuiz:s.screen==="quiz", isResults:s.screen==="results",
+      isReview:s.screen==="review", isRepo:s.screen==="repo", isAdmin:s.screen==="admin",
+      toggleTheme:()=>{ const n=s.theme==="dark"?"light":"dark"; this.applyTheme(n); this.setState({theme:n}); },
+      goHome:()=>this.setState({screen:"landing"}), goRepo:()=>this.setState({screen:"repo"}),
+      brandTap:()=>this.brandTap(),
+      goAdmin:()=>this.setState({screen:"admin"}), goResults:()=>this.setState({screen:"results"}),
+      goReview:()=>{ this.setState({screen:"review"}); window.scrollTo(0,0); },
+
+      langChoices:[{k:"en",label:"English",font:"'Manrope',sans-serif"},{k:"rw",label:"Kinyarwanda",font:"'Manrope',sans-serif"},{k:"ar",label:"العربية",font:"'Noto Kufi Arabic',sans-serif"}].map(l=>({
+        label:l.label, font:l.font,
+        bg: lang===l.k ? "var(--green)" : "var(--surface)",
+        border: lang===l.k ? "var(--green)" : "var(--line)",
+        color: lang===l.k ? "#fff" : "var(--ink)",
+        pick:()=>this.setState({lang:l.k})
+      })),
+      steps:[1,2,3].map(n=>({n:num(n).padStart ? num(n) : num(n),
+        title:[{en:"Answer in your language",rw:"Subiza mu rurimi rwawe",ar:"أجب بلغتك"},{en:"Nothing marked as you go",rw:"Nta gisubizo kigaragara mu nzira",ar:"لا تصحيح أثناء الاختبار"},{en:"Score, key, PDF",rw:"Amanota, ibisubizo, PDF",ar:"النتيجة والإجابات وملف PDF"}][n-1][lang],
+        body:[{en:"English, Kinyarwanda or Arabic — the whole set follows your choice.",rw:"Icyongereza, Ikinyarwanda cyangwa Icyarabu — ibibazo byose bikurikira ihitamo ryawe.",ar:"الإنجليزية أو الكينيارواندية أو العربية — يتبع الاختبار كله اختيارك."},{en:"Move back and forth freely; the host decides any time limit.",rw:"Ushobora kugenda imbere n'inyuma; igihe gishyirwa n'umwanditsi.",ar:"تنقل بحرية، والمشرف هو من يحدد الوقت."},{en:"Green for right, red for wrong, then a printable answer key.",rw:"Icyatsi ku byukuri, umutuku ku byibeshye, hanyuma ibisubizo byo kubika.",ar:"الأخضر للصواب والأحمر للخطأ، ثم مفتاح إجابات قابل للطباعة."}][n-1][lang]
+      })),
+      start:()=>{ this.setState({screen:"quiz",qi:0,answers:{},left:this.secs()},()=>this.startTimer()); window.scrollTo(0,0); },
+      retake:()=>{ this.setState({screen:"quiz",qi:0,answers:{},left:this.secs()},()=>this.startTimer()); window.scrollTo(0,0); },
+
+      counter: {en:`Question ${s.qi+1} of ${QS.length}`, rw:`Ikibazo ${s.qi+1} kuri ${QS.length}`, ar:`السؤال ${num(s.qi+1)} من ${num(QS.length)}`}[lang],
+      answeredLabel: `${num(answeredCount)} ${t.answered}`,
+      progressPct: `${Math.round(((s.qi+1)/QS.length)*100)}%`,
+      left: num(s.left),
+      showTimer: this.props.showTimer !== false,
+      timerColor: s.left<=8 ? "var(--bad)" : "var(--gold)",
+      q:{ text:q.q[lang],
+        opts:q.o[lang].map((label,i)=>({
+          label, letter:["A","B","C","D","E","F"][i],
+          bg: picked===i ? "var(--surface2)" : "transparent",
+          border: picked===i ? "var(--gold)" : "var(--line)",
+          badgeBg: picked===i ? "var(--gold)" : "var(--surface2)",
+          badgeColor: picked===i ? "#0b1712" : "var(--mute)",
+          pick:()=>this.setState({answers:Object.assign({},s.answers,{[s.qi]:i})})
+        })) },
+      prev:()=>this.setState({qi:Math.max(0,s.qi-1),left:this.secs()}),
+      next:()=>this.advance(),
+      nextLabel: last ? t.finish : t.next,
+
+      score:num(score), wrong:num(QS.length-score), outOf:`${t.outOf} ${num(QS.length)}`,
+      scoreDeg:`${Math.round((score/QS.length)*360)}deg`,
+      verdict: score/QS.length>=0.8 ? t.verdictHigh : score/QS.length>=0.5 ? t.verdictMid : t.verdictLow,
+      scoreLine: `${num(score)} / ${num(QS.length)}`,
+      cells:QS.map((qq,i)=>{ const ok=s.answers[i]===qq.c; return {n:num(i+1),
+        bg: ok?"var(--ok-soft)":"var(--bad-soft)", color: ok?"var(--ok)":"var(--bad)",
+        border: ok?"var(--ok-soft)":"var(--bad-soft)"}; }),
+      rows:QS.map((qq,i)=>{ const a=s.answers[i], ok=a===qq.c; return {
+        n:num(i+1), q:qq.q[lang], exp:qq.e[lang],
+        accent: ok?"var(--ok)":"var(--bad)", badgeBg: ok?"var(--ok-soft)":"var(--bad-soft)",
+        yourLabel: `${t.yourAnswer}: ${a==null?t.noAnswer:qq.o[lang][a]}`,
+        yourBg: ok?"var(--ok-soft)":"var(--bad-soft)", yourColor: ok?"var(--ok)":"var(--bad)",
+        correctLabel: `${t.correctAnswer}: ${qq.o[lang][qq.c]}` }; }),
+      downloadPdf:()=>{ setTimeout(()=>window.print(),120); },
+
+      topics:TOPICS.map(tp=>({ name:tp.name[lang], ar:tp.ar, sub:tp.sub[lang],
+        tag: tp.live ? t.live : t.soon,
+        tagBg: tp.live ? "var(--ok-soft)" : "var(--surface2)",
+        tagColor: tp.live ? "var(--ok)" : "var(--mute)",
+        cta: tp.live ? t.open : t.locked,
+        cursor: tp.live ? "pointer" : "default",
+        open: tp.live ? ()=>{ this.setState({screen:"quiz",qi:0,answers:{},left:this.secs()},()=>this.startTimer()); window.scrollTo(0,0); } : ()=>{} })),
+
+      needsPass: !s.adminAuthed, adminAuthed:s.adminAuthed, pass:s.pass,
+      setPass:(e)=>this.setState({pass:e.target.value}),
+      submitPass:()=>this.setState({adminAuthed:true}),
+      qTypes:TYPES, adminType:s.adminType,
+      setAdminType:(e)=>this.setState({adminType:e.target.value}),
+      adminOpts:["3","4","5","7"].map((v,i)=>({ value:v,
+        ring: s.adminCorrect===i ? "var(--ok)" : "var(--line)",
+        fill: s.adminCorrect===i ? "var(--ok)" : "transparent",
+        mark:()=>this.setState({adminCorrect:i}) })),
+      adminSets:[{name:"Swala — 16 questions",meta:"Published · 3 languages · MCQ",tag:"Live",tagBg:"var(--ok-soft)",tagColor:"var(--ok)"},
+        {name:"Twahara — 12 questions",meta:"Draft · English only",tag:"Draft",tagBg:"var(--surface2)",tagColor:"var(--mute)"},
+        {name:"Seerah — 20 questions",meta:"Scheduled · 1 Rabi' al-Awwal",tag:"Queued",tagBg:"var(--surface2)",tagColor:"var(--gold)"}]
+    };
+  }
+}
+
+</script>
+</body>
+</html>
