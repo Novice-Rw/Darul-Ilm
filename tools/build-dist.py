@@ -24,7 +24,6 @@ TPL = re.compile(r'(<script type="__bundler/template">)(.*?)(</script>)', re.S)
 
 ASSETS = {
     'src="./support.js"':            'src="59d5d649-5f9a-471a-ae1c-fe59751c9301"',
-    'src="./image-slot.js"':         'src="40ae1a90-a406-4036-9aca-1c07cbb83a51"',
     'src="assets/darul-ilm-logo.jpeg"': 'src="bc2c7d68-ace4-4a69-af4e-85d2547fca71"',
 }
 
