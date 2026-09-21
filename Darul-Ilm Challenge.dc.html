@@ -127,8 +127,12 @@ button{font-family:inherit}
           </div>
         </div>
 
+        <div style="font-size:13px;color:var(--bad);margin-top:14px;min-height:18px;max-width:520px">{{ qErr }}</div>
+        <sc-if value="{{ offline }}">
+          <div style="font-size:12.5px;color:var(--mute);margin-top:4px;max-width:520px">Showing a bundled sample — the question service could not be reached.</div>
+        </sc-if>
         <sc-if value="{{ hasLive }}">
-        <button onClick="{{ start }}" style="margin:34px 0 0;min-height:56px;padding:0 40px;border-radius:999px;border:none;background:var(--green);color:#fff;font-size:16px;font-weight:600;letter-spacing:.02em;cursor:pointer;box-shadow:var(--shadow);transition:transform .15s ease" style-hover="transform:translateY(-2px)">{{ t.start }}</button>
+        <button onClick="{{ start }}" style="margin:34px 0 0;min-height:56px;padding:0 40px;border-radius:999px;border:none;background:var(--green);color:#fff;font-size:16px;font-weight:600;letter-spacing:.02em;cursor:pointer;box-shadow:var(--shadow);transition:transform .15s ease" style-hover="transform:translateY(-2px)">{{ startLabel }}</button>
         </sc-if>
 
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:14px;margin:62px 0 0;width:100%;max-width:820px;text-align:start">
@@ -221,6 +225,9 @@ button{font-family:inherit}
               <div style="font-size:11px;letter-spacing:.26em;color:var(--gold);text-transform:uppercase">{{ t.answerKey }}</div>
               <h2 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:clamp(26px,4.6vw,38px);margin:8px 0 0">{{ t.setTitle }}</h2>
               <div style="font-size:13px;color:var(--mute);margin-top:6px">{{ scoreLine }}</div>
+              <sc-if value="{{ keyPending }}">
+                <div style="font-size:12.5px;color:var(--gold);margin-top:8px;line-height:1.5">{{ t.keyLater }}</div>
+              </sc-if>
             </div>
             <div class="np" style="display:flex;flex-wrap:wrap;gap:8px">
               <button onClick="{{ downloadPdf }}" style="min-height:48px;padding:0 22px;border-radius:12px;border:none;background:var(--green);color:#fff;font-size:14px;font-weight:600;cursor:pointer" style-hover="background:var(--gold)">{{ t.download }}</button>
@@ -276,9 +283,10 @@ button{font-family:inherit}
           <sc-if value="{{ needsPass }}">
             <div style="max-width:380px;margin:6vh auto 0;padding:30px;border:1px solid var(--line);border-radius:20px;background:var(--surface);box-shadow:var(--shadow);text-align:center">
               <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600">Host access</div>
-              <p style="font-size:13.5px;color:var(--mute);line-height:1.55;margin:8px 0 22px">Protected page. Enter the host passphrase to publish questions.</p>
-              <input type="password" value="{{ pass }}" onChange="{{ setPass }}" placeholder="Passphrase" style="width:100%;min-height:50px;padding:0 16px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:15px;font-family:inherit;outline:none" />
-              <button onClick="{{ submitPass }}" style="width:100%;min-height:50px;margin-top:10px;border-radius:12px;border:none;background:var(--green);color:#fff;font-size:15px;font-weight:600;cursor:pointer" style-hover="background:var(--gold)">Unlock</button>
+              <p style="font-size:13.5px;color:var(--mute);line-height:1.55;margin:8px 0 22px">Protected page. Sign in with your host account to publish questions.</p>
+              <input type="email" value="{{ hostEmail }}" onChange="{{ setHostEmail }}" placeholder="Email" autocomplete="username" style="width:100%;min-height:50px;padding:0 16px;margin-bottom:10px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:15px;font-family:inherit;outline:none" />
+              <input type="password" value="{{ pass }}" onChange="{{ setPass }}" placeholder="Password" autocomplete="current-password" style="width:100%;min-height:50px;padding:0 16px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:15px;font-family:inherit;outline:none" />
+              <button onClick="{{ submitPass }}" style="width:100%;min-height:50px;margin-top:10px;border-radius:12px;border:none;background:var(--green);color:#fff;font-size:15px;font-weight:600;cursor:pointer" style-hover="background:var(--gold)">Sign in</button>
               <div style="font-size:11.5px;color:var(--bad);margin-top:14px;min-height:16px">{{ passErr }}</div>
             </div>
           </sc-if>
@@ -290,6 +298,7 @@ button{font-family:inherit}
                 <div style="font-family:'Cormorant Garamond',serif;font-size:clamp(24px,5vw,34px);font-weight:600;margin-top:4px">Publish a question set</div>
               </div>
               <button onClick="{{ doPublish }}" style="min-height:48px;padding:0 24px;border-radius:12px;border:none;background:var(--green);color:#fff;font-size:14px;font-weight:600;cursor:pointer" style-hover="background:var(--gold)">{{ publishLabel }}</button>
+              <button onClick="{{ signOut }}" style="min-height:48px;padding:0 18px;border-radius:12px;background:none;border:1px solid var(--line);color:var(--mute);font-size:13.5px;cursor:pointer" style-hover="color:var(--bad);border-color:var(--bad)">Sign out</button>
             </div>
             <div style="font-size:13px;color:{{ pubColor }};min-height:19px;margin-bottom:18px">{{ pubMsg }}</div>
 
@@ -453,6 +462,7 @@ const STR = {
     betweenTitle:"New questions soon",
     betweenBody:"This round has closed. The host will post a new set shortly — in the meantime you can explore every past set and its answer key in the repository.",
     exploreRepo:"Explore the repository",questionsWord:"questions",eachWord:"each",
+    keyLater:"The answer key opens when this round closes.",
     live:"Live",soon:"Soon",open:"Start →",locked:"Coming soon"},
   rw:{navHome:"Ahabanza",navRepo:"Ububiko",navAdmin:"Umwanditsi",heroTitle:"Imenye ubwawe unyuze mu Isilamu.",
     heroLine:"Menya ubujyakuzimu bw'ukwemera kwawe, ikibazo ku kibazo.",
@@ -466,6 +476,7 @@ const STR = {
     betweenTitle:"Ibibazo bishya biraza",
     betweenBody:"Iyi seti yarangiye. Umwanditsi azashyiraho indi vuba — muri iki gihe ushobora gusura ububiko ukareba seti zashize n'ibisubizo byazo.",
     exploreRepo:"Sura ububiko",questionsWord:"ibibazo",eachWord:"buri kimwe",
+    keyLater:"Ibisubizo bizagaragara iyi seti irangiye.",
     live:"Bihari",soon:"Biraza",open:"Tangira →",locked:"Biraza"},
   ar:{navHome:"الرئيسية",navRepo:"الأرشيف",navAdmin:"المشرف",heroTitle:"اكتشف نفسك من خلال الإسلام.",
     heroLine:"اكتشف عمق إيمانك، سؤالًا بعد سؤال.",
@@ -479,6 +490,7 @@ const STR = {
     betweenTitle:"أسئلة جديدة قريبًا",
     betweenBody:"انتهت هذه الجولة. سينشر المشرف مجموعة جديدة قريبًا — ويمكنك في هذه الأثناء تصفح كل المجموعات السابقة ومفاتيح إجاباتها في الأرشيف.",
     exploreRepo:"تصفح الأرشيف",questionsWord:"أسئلة",eachWord:"لكل سؤال",
+    keyLater:"يظهر مفتاح الإجابات بعد انتهاء هذه الجولة.",
     live:"متاح",soon:"قريبًا",open:"ابدأ ←",locked:"قريبًا"}
 };
 
@@ -500,7 +512,74 @@ const TOPICS = [
 const TYPES = ["Multiple choice","Checkbox","Short answer","Paragraph","Dropdown","Rating","Linear scale","Checkbox grid","Multiple-choice grid","Date & time"];
 const SECS = 30;
 
-const API_SETS="/api/sets", API_AUTH="/api/auth", API_PUBLISH="/api/publish", API_UPLOAD="/api/upload";
+// Supabase. The anon key is meant to be public — it identifies the project and
+// grants nothing on its own. Row-level security and the grants in
+// supabase/schema.sql are what protect the data, and the correct answers are
+// never served to the browser at all.
+const SB_URL  = "https://hgervkxkfybciqnzlswd.supabase.co";
+const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnZXJ2a3hrZnliY2lxbnpsc3dkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAwMDIxMDMsImV4cCI6MjEwNTU3ODEwM30.6TEAllm3sFL8XhFDNRR6QrrF2JUeM7jayzAFTQDOY7M";
+const SB_REST = SB_URL + "/rest/v1";
+const SB_AUTH = SB_URL + "/auth/v1";
+const SB_SESSION_KEY = "dil_session";
+
+function sbHeaders(tok, extra){
+  return Object.assign({ apikey: SB_ANON, Authorization: "Bearer " + (tok || SB_ANON) }, extra || {});
+}
+
+async function sbRead(res){
+  let d = null;
+  try { d = await res.json(); } catch(e){}
+  if(!res.ok){
+    const m = (d && (d.message || d.msg || d.error_description || d.error)) ||
+              ("Request failed (" + res.status + ")");
+    const err = new Error(m); err.status = res.status; err.code = d && d.code; throw err;
+  }
+  return d;
+}
+
+function sbRest(path, tok, opts){
+  return fetch(SB_REST + path, Object.assign(
+    { headers: sbHeaders(tok, {"content-type":"application/json"}) }, opts || {})).then(sbRead);
+}
+
+function sbRpc(fn, args, tok){
+  return sbRest("/rpc/" + fn, tok, { method:"POST", body: JSON.stringify(args || {}) });
+}
+
+function sbAuth(path, body){
+  return fetch(SB_AUTH + path, { method:"POST",
+    headers: sbHeaders(null, {"content-type":"application/json"}),
+    body: JSON.stringify(body || {}) }).then(sbRead);
+}
+
+// Visitors get an anonymous identity so grading can be one attempt each. The
+// session is kept so a reload does not hand them a fresh attempt.
+function sbSaveSession(d){
+  if(!d || !d.access_token) return null;
+  const sess = { access_token:d.access_token, refresh_token:d.refresh_token,
+                 expires_at: Date.now() + ((d.expires_in || 3600) * 1000) - 60000,
+                 is_anon: !!(d.user && d.user.is_anonymous),
+                 email: d.user && d.user.email || "" };
+  try { localStorage.setItem(SB_SESSION_KEY, JSON.stringify(sess)); } catch(e){}
+  return sess;
+}
+
+function sbLoadSession(){
+  try { return JSON.parse(localStorage.getItem(SB_SESSION_KEY) || "null"); } catch(e){ return null; }
+}
+
+function sbClearSession(){
+  try { localStorage.removeItem(SB_SESSION_KEY); } catch(e){}
+}
+
+// Map a public_sets row onto the shape the screens already use.
+function sbMapSet(r){
+  return { id:r.id,
+    title:{ en:r.title_en, rw:r.title_rw || r.title_en, ar:r.title_ar || r.title_en },
+    opensAt:r.opens_at, closesAt:r.closes_at,
+    secondsPerQuestion:r.seconds_per_question,
+    count:r.question_count, questions:[] };
+}
 
 // Stands in before anything is published, or if the API cannot be reached.
 const FALLBACK_SET = {id:"swala",title:{en:"Swala — the prayer",rw:"Iswala",ar:"الصلاة"},
@@ -534,7 +613,9 @@ class Component extends DCLogic {
   state = {theme:this.props.startTheme ?? "dark",screen:"landing",lang:this.props.defaultLanguage ?? "en",qi:0,answers:{},left:this.secs(),sets:[],setsLoaded:false,hero:null,activeId:null,now:Date.now(),
     dId:"",dTitleEn:"",dTitleRw:"",dTitleAr:"",dSecs:SECS,dJson:"",
     dOpens:dtLocal(new Date()),dCloses:dtLocal(new Date(Date.now()+7*86400000)),
-    pubMsg:"",pubOk:true,heroMsg:"",heroOk:true,pass:"",passErr:"",adminAuthed:false};
+    pubMsg:"",pubOk:true,heroMsg:"",heroOk:true,pass:"",passErr:"",adminAuthed:false,
+    session:null,offline:false,reveal:"after_close",
+    graded:null,grading:false,qLoading:false,qErr:"",hostEmail:"",hostRows:[]};
 
   liveSet(){
     const st=this.state; if(!st) return null;
@@ -559,17 +640,149 @@ class Component extends DCLogic {
       const sc=this.state.screen;
       if(sc==="landing"||sc==="repo"||sc==="admin") this.setState({now:Date.now()});
     },1000);
+    // A stored host session keeps the console open across reloads; is_host()
+    // is re-checked on the server before anything is shown.
+    const se = sbLoadSession();
+    if(se && se.access_token){
+      this.setState({session:se});
+      if(!se.is_anon){
+        sbRpc("host_sets", {}, se.access_token)
+          .then(rows=>this.setState({adminAuthed:true, hostRows:rows||[]}))
+          .catch(()=>{});
+      }
+    }
     this.loadSets();
   }
-  loadSets(force){
-    fetch(API_SETS + (force ? "?t="+Date.now() : ""),{headers:{accept:"application/json"}})
-      .then(r=>r.ok?r.json():null)
-      .then(d=>{
-        if(d && Array.isArray(d.sets)) this.setState({sets:d.sets, hero:d.hero||null, setsLoaded:true});
-        else this.setState({setsLoaded:true});
-      })
-      .catch(()=>this.setState({setsLoaded:true}));
+  tok(){ const se=this.state && this.state.session; return se && se.access_token || null; }
+
+  // Refresh a session that is close to expiry; fall back to a new anonymous one.
+  async ensureSession(){
+    let se = this.state.session || sbLoadSession();
+    if(se && se.expires_at && Date.now() > se.expires_at && se.refresh_token){
+      try { se = sbSaveSession(await sbAuth("/token?grant_type=refresh_token",
+              {refresh_token: se.refresh_token})); }
+      catch(e){ se = null; sbClearSession(); }
+    }
+    if(!se){
+      // Anonymous identity: no sign-up form, but grading can still be one
+      // attempt each. Created lazily so browsing does not make an account.
+      se = sbSaveSession(await sbAuth("/signup", {}));
+    }
+    if(se) this.setState({session:se});
+    return se;
   }
+
+  loadSets(){
+    Promise.all([
+      sbRest("/public_sets?select=*&order=opens_at.desc", this.tok()),
+      sbRest("/site_settings?select=hero_url,reveal_answers&limit=1", this.tok())
+    ]).then(([rows, cfg])=>{
+      const c = cfg && cfg[0] || {};
+      this.setState({ sets:(rows||[]).map(sbMapSet), hero:c.hero_url || null,
+                      reveal:c.reveal_answers || "after_close",
+                      setsLoaded:true, offline:false });
+    }).catch(()=>this.setState({setsLoaded:true, offline:true}));
+  }
+
+  // Questions arrive without answers; public_questions has no answer column.
+  loadQuestions(setId){
+    return sbRest("/public_questions?select=position,prompt,options&order=position.asc&set_id=eq."
+                  + encodeURIComponent(setId), this.tok())
+      .then(rows=>(rows||[]).map(r=>({ q:r.prompt, o:r.options })));
+  }
+
+  // Open a set: fetch its questions, then start the timer.
+  startSet(setId){
+    const st=this.state;
+    const target = st.sets.find(x=>x.id===setId);
+    if(!target){ this.setState({qErr:"That set is no longer available."}); return; }
+    if(target.questions && target.questions.length){
+      this.beginWith(setId, target.secondsPerQuestion); return;
+    }
+    this.setState({qLoading:true, qErr:""});
+    this.loadQuestions(setId)
+      .then(qs=>{
+        if(!qs.length) throw new Error("That set has no questions yet.");
+        const sets = this.state.sets.map(x=> x.id===setId ? Object.assign({}, x, {questions:qs}) : x);
+        this.setState({sets, qLoading:false}, ()=>this.beginWith(setId, target.secondsPerQuestion));
+      })
+      .catch(err=>this.setState({qLoading:false, qErr:err.message || "Could not load the questions."}));
+  }
+
+  // A closed set's key comes from answer_key(), which refuses while a set is open.
+  openKey(id){
+    this.setState({qErr:"", qLoading:true});
+    sbRpc("answer_key", {p_set_id:id}, this.tok())
+      .then(key=>{
+        const qs=(key||[]).map(k=>({q:k.prompt, o:k.options}));
+        const detail=(key||[]).map(k=>({position:k.position, given:null,
+          correct:k.correct, explanation:k.explanation, is_right:false}));
+        const sets=this.state.sets.map(x=> x.id===id ? Object.assign({}, x, {questions:qs}) : x);
+        this.setState({sets, activeId:id, qLoading:false,
+          graded:{score:0, total:qs.length, key_shown:true, detail}, screen:"review"});
+        window.scrollTo(0,0);
+      })
+      .catch(err=>this.setState({qLoading:false, qErr:err.message || "Could not load the answer key."}));
+  }
+
+  beginWith(setId, secs){
+    this.setState({ activeId:setId, screen:"quiz", qi:0, answers:{}, graded:null,
+                    left: Math.max(5, Number(secs) || SECS) }, ()=>this.startTimer());
+    window.scrollTo(0,0);
+  }
+
+  // Scoring happens in the database. The browser never sees the answers while
+  // a round is open, so it cannot mark the paper itself.
+  submitAttempt(){
+    const st=this.state;
+    const set=this.activeSet();
+    if(!set){ return; }
+    if(set.fallback){   // offline demo set, graded locally
+      const qs=this.qs();
+      const detail=qs.map((q,i)=>({position:i, given:st.answers[i], correct:q.c,
+        explanation:q.e, is_right:st.answers[i]===q.c}));
+      this.setState({graded:{score:detail.filter(d=>d.is_right).length, total:qs.length,
+        key_shown:true, detail, offline:true}, screen:"results"});
+      window.scrollTo(0,0); return;
+    }
+    clearInterval(this._iv);
+    this.setState({grading:true, qErr:""});
+    this.ensureSession()
+      .then(se=>sbRpc("grade_attempt", {p_set_id:set.id, p_answers:st.answers}, se && se.access_token))
+      .then(g=>{ this.setState({graded:g, grading:false, screen:"results"}); window.scrollTo(0,0); })
+      .catch(err=>this.setState({grading:false,
+        qErr: err.code==="28000"
+          ? "Anonymous sign-in is turned off for this project, so attempts cannot be recorded yet."
+          : (err.message || "Could not submit your attempt.")}));
+  }
+  hostSignIn(){
+    const st=this.state;
+    const email=(st.hostEmail||"").trim(), pw=st.pass||"";
+    if(!email || !pw){ this.setState({passErr:"Enter your email and password."}); return; }
+    this.setState({passErr:"Signing in…"});
+    sbAuth("/token?grant_type=password", {email, password:pw})
+      .then(d=>{
+        const se=sbSaveSession(d);
+        this.setState({session:se, pass:""});
+        // is_host() decides; a valid login is not enough on its own.
+        return sbRpc("host_sets", {}, se.access_token)
+          .then(rows=>this.setState({adminAuthed:true, passErr:"", hostRows:rows||[]}))
+          .catch(()=>{ this.setState({passErr:"That account is not a host."}); });
+      })
+      .catch(err=>this.setState({pass:"", passErr: err.message || "Could not sign in."}));
+  }
+
+  hostSignOut(){
+    sbClearSession();
+    this.setState({session:null, adminAuthed:false, hostRows:[], screen:"landing"});
+  }
+
+  refreshHostSets(){
+    return sbRpc("host_sets", {}, this.tok())
+      .then(rows=>this.setState({hostRows:rows||[]}))
+      .catch(()=>{});
+  }
+
   publishSet(){
     const st=this.state;
     let questions;
@@ -582,42 +795,63 @@ class Component extends DCLogic {
       closesAt:new Date(st.dCloses).toISOString(),
       secondsPerQuestion:Number(st.dSecs)||SECS, questions };
     this.setState({pubMsg:"Publishing…",pubOk:true});
-    fetch(API_PUBLISH,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({set})})
-      .then(async r=>{ const d=await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.error||"Could not publish."); return d; })
-      .then(()=>{ this.setState({pubMsg:"Published. Visitors see it within 30 seconds.",pubOk:true}); this.loadSets(true); })
-      .catch(err=>this.setState({pubMsg:err.message||"Could not reach the server.",pubOk:false}));
+    // The database validates again and stores the answers; they never come back.
+    sbRpc("publish_set", {p_set:set}, this.tok())
+      .then(r=>{
+        this.setState({pubMsg:"Published — "+r.questions+" question"+(r.questions===1?"":"s")+" live.",pubOk:true});
+        this.loadSets(); this.refreshHostSets();
+      })
+      .catch(err=>this.setState({pubMsg:err.message||"Could not publish.",pubOk:false}));
   }
+
   removeSet(id){
     this.setState({pubMsg:"Deleting…",pubOk:true});
-    fetch(API_PUBLISH+"?id="+encodeURIComponent(id),{method:"DELETE"})
-      .then(async r=>{ const d=await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.error||"Could not delete."); })
-      .then(()=>{ this.setState({pubMsg:"Deleted.",pubOk:true}); this.loadSets(true); })
-      .catch(err=>this.setState({pubMsg:err.message,pubOk:false}));
+    sbRpc("delete_set", {p_set_id:id}, this.tok())
+      .then(()=>{ this.setState({pubMsg:"Deleted.",pubOk:true}); this.loadSets(); this.refreshHostSets(); })
+      .catch(err=>this.setState({pubMsg:err.message||"Could not delete.",pubOk:false}));
   }
-  editSet(x){
-    this.setState({ dId:x.id, dTitleEn:(x.title&&x.title.en)||"", dTitleRw:(x.title&&x.title.rw)||"",
-      dTitleAr:(x.title&&x.title.ar)||"", dSecs:x.secondsPerQuestion||SECS,
-      dOpens:dtLocal(new Date(x.opensAt)), dCloses:dtLocal(new Date(x.closesAt)),
-      dJson:JSON.stringify(x.questions||[],null,2), pubMsg:"Loaded into the form.",pubOk:true });
-    window.scrollTo(0,0);
+
+  editSet(id){
+    this.setState({pubMsg:"Loading…",pubOk:true});
+    sbRpc("host_set_detail", {p_set_id:id}, this.tok())
+      .then(x=>{
+        this.setState({ dId:x.id, dTitleEn:(x.title&&x.title.en)||"", dTitleRw:(x.title&&x.title.rw)||"",
+          dTitleAr:(x.title&&x.title.ar)||"", dSecs:x.secondsPerQuestion||SECS,
+          dOpens:dtLocal(new Date(x.opensAt)), dCloses:dtLocal(new Date(x.closesAt)),
+          dJson:JSON.stringify(x.questions||[],null,2), pubMsg:"Loaded into the form.",pubOk:true });
+        window.scrollTo(0,0);
+      })
+      .catch(err=>this.setState({pubMsg:err.message||"Could not load that set.",pubOk:false}));
   }
+
   clearHero(){
     this.setState({heroMsg:"Removing…",heroOk:true});
-    fetch(API_UPLOAD,{method:"DELETE"})
-      .then(async r=>{ const d=await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.error||"Could not remove."); })
+    sbRpc("set_hero", {p_url:null}, this.tok())
       .then(()=>this.setState({heroMsg:"Removed.",heroOk:true,hero:null}))
-      .catch(err=>this.setState({heroMsg:err.message,heroOk:false}));
+      .catch(err=>this.setState({heroMsg:err.message||"Could not remove.",heroOk:false}));
   }
+
   uploadHero(e){
     const f = e.target.files && e.target.files[0];
     if(!f) return;
     if(f.size > 4*1024*1024){ this.setState({heroMsg:"Image must be 4MB or smaller.",heroOk:false}); return; }
+    if(!/^image\/(jpeg|png|webp|avif)$/.test(f.type)){
+      this.setState({heroMsg:"Use a JPEG, PNG, WebP or AVIF image.",heroOk:false}); return; }
+    const name = "hero-" + Date.now() + "." + (f.type.split("/")[1] || "jpg");
     this.setState({heroMsg:"Uploading…",heroOk:true});
-    fetch(API_UPLOAD,{method:"POST",headers:{"content-type":f.type},body:f})
-      .then(async r=>{ const d=await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.error||"Upload failed."); return d; })
-      .then(d=>this.setState({heroMsg:"Uploaded.",heroOk:true,hero:d.hero}))
-      .catch(err=>this.setState({heroMsg:err.message||"Could not reach the server.",heroOk:false}));
+    fetch(SB_URL + "/storage/v1/object/hero/" + name, {
+        method:"POST",
+        headers: sbHeaders(this.tok(), {"content-type": f.type, "x-upsert":"true"}),
+        body: f })
+      .then(sbRead)
+      .then(()=>{
+        const url = SB_URL + "/storage/v1/object/public/hero/" + name;
+        return sbRpc("set_hero", {p_url:url}, this.tok())
+          .then(()=>this.setState({heroMsg:"Uploaded.",heroOk:true,hero:url}));
+      })
+      .catch(err=>this.setState({heroMsg:err.message||"Upload failed.",heroOk:false}));
   }
+
   brandTap(){
     const now=Date.now();
     if(!this._taps || now-this._taps.t>1800) this._taps={n:0,t:now};
@@ -639,10 +873,13 @@ class Component extends DCLogic {
   }
   advance(){
     const i=this.state.qi;
-    if(i+1>=this.qs().length){ clearInterval(this._iv); this.setState({screen:"results"}); window.scrollTo(0,0); }
+    if(i+1>=this.qs().length){ this.submitAttempt(); }
     else this.setState({qi:i+1,left:this.secs()});
   }
-  score(){ return this.qs().reduce((n,q,i)=> n + (this.state.answers[i]===q.c ? 1 : 0), 0); }
+  // The score comes back from grade_attempt; the browser no longer marks it.
+  score(){ const g=this.state.graded; return g ? (g.score||0) : 0; }
+  total(){ const g=this.state.graded; return g ? (g.total||0) : this.qs().length; }
+  detail(){ const g=this.state.graded; return (g && g.detail) || []; }
 
   renderVals(){
     const s=this.state, lang=s.lang, t=STR[lang], rtl=lang==="ar";
@@ -654,7 +891,9 @@ class Component extends DCLogic {
       if(!Array.isArray(v)) jsonErr="The top level must be an array."; else parsedQs=v;
     }catch(e){ jsonErr="Not valid JSON — "+e.message; }
     const q=QSA[s.qi], picked=s.answers[s.qi], answeredCount=Object.keys(s.answers).length;
-    const score=this.score(), last=s.qi===QSA.length-1;
+    const score=this.score(), total=this.total()||QSA.length, detail=this.detail();
+    const keyShown = !!(s.graded && s.graded.key_shown);
+    const last=s.qi===QSA.length-1;
     const num = n => rtl ? String(n).replace(/\d/g,d=>"٠١٢٣٤٥٦٧٨٩"[d]) : String(n);
 
     return {
@@ -686,7 +925,11 @@ class Component extends DCLogic {
         title:[{en:"Answer in your language",rw:"Subiza mu rurimi rwawe",ar:"أجب بلغتك"},{en:"Nothing marked as you go",rw:"Nta gisubizo kigaragara mu nzira",ar:"لا تصحيح أثناء الاختبار"},{en:"Score, key, PDF",rw:"Amanota, ibisubizo, PDF",ar:"النتيجة والإجابات وملف PDF"}][n-1][lang],
         body:[{en:"English, Kinyarwanda or Arabic — the whole set follows your choice.",rw:"Icyongereza, Ikinyarwanda cyangwa Icyarabu — ibibazo byose bikurikira ihitamo ryawe.",ar:"الإنجليزية أو الكينيارواندية أو العربية — يتبع الاختبار كله اختيارك."},{en:"Move back and forth freely; the host decides any time limit.",rw:"Ushobora kugenda imbere n'inyuma; igihe gishyirwa n'umwanditsi.",ar:"تنقل بحرية، والمشرف هو من يحدد الوقت."},{en:"Green for right, red for wrong, then a printable answer key.",rw:"Icyatsi ku byukuri, umutuku ku byibeshye, hanyuma ibisubizo byo kubika.",ar:"الأخضر للصواب والأحمر للخطأ، ثم مفتاح إجابات قابل للطباعة."}][n-1][lang]
       })),
-      start:()=>{ this.setState({screen:"quiz",qi:0,answers:{},left:this.secs()},()=>this.startTimer()); window.scrollTo(0,0); },
+      start:()=>{ if(lv && !lv.fallback) this.startSet(lv.id);
+        else { this.setState({activeId:null,screen:"quiz",qi:0,answers:{},graded:null,left:this.secs()},()=>this.startTimer()); window.scrollTo(0,0); } },
+      qLoading:s.qLoading, qErr:s.qErr, grading:s.grading,
+      startLabel: s.qLoading ? "Loading…" : t.start,
+      offline:s.offline,
       retake:()=>{ this.setState({screen:"quiz",qi:0,answers:{},left:this.secs()},()=>this.startTimer()); window.scrollTo(0,0); },
 
       counter: {en:`Question ${s.qi+1} of ${QSA.length}`, rw:`Ikibazo ${s.qi+1} kuri ${QSA.length}`, ar:`السؤال ${num(s.qi+1)} من ${num(QSA.length)}`}[lang],
@@ -708,23 +951,37 @@ class Component extends DCLogic {
       next:()=>this.advance(),
       nextLabel: last ? t.finish : t.next,
 
-      score:num(score), wrong:num(QSA.length-score), outOf:`${t.outOf} ${num(QSA.length)}`,
-      scoreDeg:`${Math.round((score/QSA.length)*360)}deg`,
-      verdict: score/QSA.length>=0.8 ? t.verdictHigh : score/QSA.length>=0.5 ? t.verdictMid : t.verdictLow,
-      scoreLine: `${num(score)} / ${num(QSA.length)}`,
-      cells:QSA.map((qq,i)=>{ const ok=s.answers[i]===qq.c; return {n:num(i+1),
-        bg: ok?"var(--ok-soft)":"var(--bad-soft)", color: ok?"var(--ok)":"var(--bad)",
-        border: ok?"var(--ok-soft)":"var(--bad-soft)"}; }),
-      rows:QSA.map((qq,i)=>{ const a=s.answers[i], ok=a===qq.c; return {
-        n:num(i+1), q:qq.q[lang], exp:qq.e[lang],
-        accent: ok?"var(--ok)":"var(--bad)", badgeBg: ok?"var(--ok-soft)":"var(--bad-soft)",
-        yourLabel: `${t.yourAnswer}: ${a==null?t.noAnswer:qq.o[lang][a]}`,
-        yourBg: ok?"var(--ok-soft)":"var(--bad-soft)", yourColor: ok?"var(--ok)":"var(--bad)",
-        correctLabel: `${t.correctAnswer}: ${qq.o[lang][qq.c]}` }; }),
+      score:num(score), wrong:num(Math.max(0,total-score)), outOf:`${t.outOf} ${num(total)}`,
+      scoreDeg:`${Math.round((score/(total||1))*360)}deg`,
+      verdict: score/(total||1)>=0.8 ? t.verdictHigh : score/(total||1)>=0.5 ? t.verdictMid : t.verdictLow,
+      scoreLine: `${num(score)} / ${num(total)}`,
+      keyShown, keyPending: !keyShown,
+      cells: detail.map((d,i)=>({ n:num(i+1),
+        bg: d.is_right?"var(--ok-soft)":"var(--bad-soft)",
+        color: d.is_right?"var(--ok)":"var(--bad)",
+        border: d.is_right?"var(--ok-soft)":"var(--bad-soft)" })),
+      // The key is only present once the round has closed, so these rows show
+      // what was right and wrong but not the answer until then.
+      rows: detail.map((d,i)=>{
+        const qq = QSA[d.position] || QSA[i] || {};
+        const opts = (qq.o && (qq.o[lang] || qq.o.en)) || [];
+        const ok = !!d.is_right;
+        const shown = keyShown && d.correct != null;
+        return {
+          n:num(i+1),
+          q: (qq.q && (qq.q[lang] || qq.q.en)) || "",
+          exp: keyShown && d.explanation ? (d.explanation[lang] || d.explanation.en || "") : "",
+          accent: ok?"var(--ok)":"var(--bad)", badgeBg: ok?"var(--ok-soft)":"var(--bad-soft)",
+          yourLabel: `${t.yourAnswer}: ${d.given==null ? t.noAnswer : (opts[d.given] !== undefined ? opts[d.given] : d.given)}`,
+          yourBg: ok?"var(--ok-soft)":"var(--bad-soft)", yourColor: ok?"var(--ok)":"var(--bad)",
+          correctLabel: shown
+            ? `${t.correctAnswer}: ${opts[d.correct] !== undefined ? opts[d.correct] : d.correct}`
+            : t.keyLater };
+      }),
       downloadPdf:()=>{ setTimeout(()=>window.print(),120); },
 
       topics: s.sets.length ? s.sets.map(x=>{
-        const ph=phaseOf(x,s.now), qn=(x.questions||[]).length;
+        const ph=phaseOf(x,s.now), qn=x.count != null ? x.count : (x.questions||[]).length;
         return {
           name: (x.title && (x.title[lang]||x.title.en)) || "—", ar:"",
           sub: qn+" "+t.questionsWord+" · "+(x.secondsPerQuestion||SECS)+"s "+t.eachWord,
@@ -733,13 +990,9 @@ class Component extends DCLogic {
           tagColor: ph==="live" ? "var(--ok)" : "var(--mute)",
           cta: ph==="live" ? t.open : ph==="scheduled" ? t.locked : t.review,
           cursor: ph==="scheduled" ? "default" : "pointer",
-          open: ph==="scheduled" ? ()=>{} : ()=>{
-            this.setState({activeId:x.id, qi:0, answers:{},
-              screen: ph==="live" ? "quiz" : "review",
-              left: Math.max(5, Number(x.secondsPerQuestion)||SECS)},
-              ()=>{ if(ph==="live") this.startTimer(); });
-            window.scrollTo(0,0);
-          }
+          open: ph==="scheduled" ? ()=>{}
+               : ph==="live" ? ()=>this.startSet(x.id)
+               : ()=>this.openKey(x.id)
         };
       }) : TOPICS.map(tp=>({ name:tp.name[lang], ar:tp.ar, sub:tp.sub[lang],
         tag: tp.live ? t.live : t.soon,
@@ -751,18 +1004,10 @@ class Component extends DCLogic {
 
       needsPass: !s.adminAuthed, adminAuthed:s.adminAuthed, pass:s.pass, passErr:s.passErr,
       setPass:(e)=>this.setState({pass:e.target.value}),
-      submitPass:async()=>{
-        const entered = this.state.pass;
-        if(!entered){ this.setState({passErr:"Enter the passphrase."}); return; }
-        this.setState({passErr:"Checking…"});
-        try{
-          const r = await fetch(API_AUTH,{method:"POST",headers:{"content-type":"application/json"},
-            body:JSON.stringify({passphrase:entered})});
-          const d = await r.json().catch(()=>({}));
-          if(r.ok && d.authed) this.setState({adminAuthed:true,pass:"",passErr:""});
-          else this.setState({pass:"",passErr:d.error || "Incorrect passphrase."});
-        }catch(e){ this.setState({pass:"",passErr:"Could not reach the server."}); }
-      },
+      submitPass:()=>this.hostSignIn(),
+      signOut:()=>this.hostSignOut(),
+      hostEmail:s.hostEmail,
+      setHostEmail:(e)=>this.setState({hostEmail:e.target.value}),
       dId:s.dId, dTitleEn:s.dTitleEn, dTitleRw:s.dTitleRw, dTitleAr:s.dTitleAr,
       dOpens:s.dOpens, dCloses:s.dCloses, dSecs:s.dSecs, dJson:s.dJson,
       setDId:(e)=>this.setState({dId:e.target.value}),
@@ -781,15 +1026,16 @@ class Component extends DCLogic {
       doPublish: ()=>this.publishSet(),
       pickHero: (e)=>this.uploadHero(e),
       clearHero: ()=>this.clearHero(),
-      noSets: !s.sets.length,
-      adminSets: s.sets.map(x=>{
-        const ph=phaseOf(x,s.now);
+      noSets: !(s.hostRows||[]).length,
+      adminSets: (s.hostRows||[]).map(x=>{
+        const ph=x.phase;
         return { name:(x.title && (x.title[lang]||x.title.en)) || x.id,
-          meta:(x.questions||[]).length+" questions · closes "+new Date(x.closesAt).toLocaleString(),
+          meta:x.questions+" questions · "+x.attempts+" attempt"+(x.attempts===1?"":"s")
+               +" · closes "+new Date(x.closesAt).toLocaleString(),
           tag: ph==="live" ? "Live" : ph==="scheduled" ? "Scheduled" : "Closed",
           tagBg: ph==="live" ? "var(--ok-soft)" : "var(--surface2)",
           tagColor: ph==="live" ? "var(--ok)" : "var(--mute)",
-          edit: ()=>this.editSet(x), remove: ()=>this.removeSet(x.id) };
+          edit: ()=>this.editSet(x.id), remove: ()=>this.removeSet(x.id) };
       }),
     };
   }

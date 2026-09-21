@@ -1,9 +1,7 @@
 {
   "name": "darul-ilm-challenge",
   "private": true,
-  "type": "module",
-  "engines": { "node": "22.x" },
-  "dependencies": {
-    "@vercel/blob": "^0.27.0"
+  "scripts": {
+    "build": "python3 tools/build-dist.py"
   }
 }
