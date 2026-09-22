@@ -52,8 +52,13 @@ button{font-family:inherit}
   .brand-name{font-size:14px}
   .brand-logo{width:32px;height:32px}
 }
+/* Blocks marked .po appear only in the printed PDF; .sx only on screen. */
+.po{display:none}
 @media print{
   .np{display:none !important}
+  .sx{display:none !important}
+  .po{display:block !important}
+  .pcard{break-inside:avoid;page-break-inside:avoid;border:1px solid #ddd !important;border-left:1px solid #ddd !important}
   html,body{background:#fff;color:#000}
   :root{--bg:#fff;--surface:#fff;--surface2:#fff;--ink:#111;--mute:#555;--line:#ddd;--shadow:none}
 }
@@ -221,8 +226,8 @@ button{font-family:inherit}
           <div style="display:flex;flex-wrap:wrap;align-items:end;gap:14px;padding-bottom:18px;border-bottom:1px solid var(--line)">
             <div style="flex:1;min-width:200px">
               <div style="font-size:11px;letter-spacing:.26em;color:var(--gold);text-transform:uppercase">{{ t.answerKey }}</div>
-              <h2 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:clamp(26px,4.6vw,38px);margin:8px 0 0">{{ t.setTitle }}</h2>
-              <div style="font-size:13px;color:var(--mute);margin-top:6px">{{ scoreLine }}</div>
+              <h2 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:clamp(26px,4.6vw,38px);margin:8px 0 0">{{ activeTitle }}</h2>
+              <div class="sx" style="font-size:13px;color:var(--mute);margin-top:6px">{{ scoreLine }}</div>
               <sc-if value="{{ keyPending }}">
                 <div style="font-size:12.5px;color:var(--gold);margin-top:8px;line-height:1.5">{{ t.keyLater }}</div>
               </sc-if>
@@ -234,15 +239,16 @@ button{font-family:inherit}
           </div>
 
           <sc-for list="{{ rows }}" as="r" hint-placeholder-count="16">
-            <div style="display:flex;flex-wrap:wrap;gap:12px 16px;padding:clamp(14px,3.5vw,20px);border:1px solid var(--line);border-left:3px solid {{ r.accent }};border-radius:14px;background:var(--surface)">
+            <div class="pcard" style="display:flex;flex-wrap:wrap;gap:12px 16px;padding:clamp(14px,3.5vw,20px);border:1px solid var(--line);border-left:3px solid {{ r.accent }};border-radius:14px;background:var(--surface)">
               <div style="width:30px;height:30px;flex:none;border-radius:9px;display:grid;place-items:center;background:{{ r.badgeBg }};color:{{ r.accent }};font-size:13px;font-weight:600">{{ r.n }}</div>
               <div style="flex:1 1 220px;min-width:0">
                 <div style="font-family:{{ qFont }};font-size:clamp(15px,3.6vw,16.5px);font-weight:600;line-height:1.4;text-wrap:pretty">{{ r.q }}</div>
+                <div class="po" style="white-space:pre-line;font-family:{{ qFont }};font-size:13.5px;line-height:1.8;margin-top:10px">{{ r.choicesText }}</div>
                 <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
-                  <span style="font-size:13px;padding:6px 12px;border-radius:9px;background:{{ r.yourBg }};color:{{ r.yourColor }}">{{ r.yourLabel }}</span>
+                  <span class="sx" style="font-size:13px;padding:6px 12px;border-radius:9px;background:{{ r.yourBg }};color:{{ r.yourColor }}">{{ r.yourLabel }}</span>
                   <span style="font-size:13px;padding:6px 12px;border-radius:9px;background:var(--ok-soft);color:var(--ok)">{{ r.correctLabel }}</span>
                 </div>
-                <div style="font-size:13.5px;color:var(--mute);line-height:1.55;margin-top:12px;text-wrap:pretty">{{ r.exp }}</div>
+                <div class="sx" style="font-size:13.5px;color:var(--mute);line-height:1.55;margin-top:12px;text-wrap:pretty">{{ r.exp }}</div>
               </div>
             </div>
           </sc-for>
@@ -1123,6 +1129,8 @@ class Component extends DCLogic {
       verdict: score/(total||1)>=0.8 ? t.verdictHigh : score/(total||1)>=0.5 ? t.verdictMid : t.verdictLow,
       scoreLine: `${num(score)} / ${num(total)}`,
       keyShown, keyPending: !keyShown,
+      activeTitle: (()=>{ const a=this.activeSet();
+        return (a && a.title && (a.title[lang] || a.title.en)) || t.setTitle; })(),
       cells: detail.map((d,i)=>({ n:num(i+1),
         bg: d.is_right?"var(--ok-soft)":"var(--bad-soft)",
         color: d.is_right?"var(--ok)":"var(--bad)",
@@ -1138,6 +1146,10 @@ class Component extends DCLogic {
           n:num(i+1),
           q: (qq.q && (qq.q[lang] || qq.q.en)) || "",
           exp: keyShown && d.explanation ? (d.explanation[lang] || d.explanation.en || "") : "",
+          choicesText: opts.map((o,k)=>{
+            const letter = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[k] || String(k+1);
+            return letter + ".  " + o + (shown && d.correct === k ? "   \u2713" : "");
+          }).join("\n"),
           accent: ok?"var(--ok)":"var(--bad)", badgeBg: ok?"var(--ok-soft)":"var(--bad-soft)",
           yourLabel: `${t.yourAnswer}: ${d.given==null ? t.noAnswer : (opts[d.given] !== undefined ? opts[d.given] : d.given)}`,
           yourBg: ok?"var(--ok-soft)":"var(--bad-soft)", yourColor: ok?"var(--ok)":"var(--bad)",
