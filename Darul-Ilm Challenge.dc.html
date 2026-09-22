@@ -311,6 +311,7 @@ button{font-family:inherit}
               <input type="email" value="{{ hostEmail }}" onChange="{{ setHostEmail }}" placeholder="Email" autocomplete="username" style="width:100%;min-height:50px;padding:0 16px;margin-bottom:10px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:15px;font-family:inherit;outline:none" />
               <input type="password" value="{{ pass }}" onChange="{{ setPass }}" placeholder="Password" autocomplete="current-password" style="width:100%;min-height:50px;padding:0 16px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:15px;font-family:inherit;outline:none" />
               <button onClick="{{ submitPass }}" style="width:100%;min-height:50px;margin-top:10px;border-radius:12px;border:none;background:var(--green);color:#fff;font-size:15px;font-weight:600;cursor:pointer" style-hover="background:var(--gold)">Sign in</button>
+              <button onClick="{{ forgotPw }}" style="margin-top:12px;background:none;border:none;color:var(--mute);font-size:12.5px;font-family:inherit;text-decoration:underline;cursor:pointer" style-hover="color:var(--gold)">Forgot your password?</button>
               <div style="font-size:11.5px;color:var(--bad);margin-top:14px;min-height:16px">{{ passErr }}</div>
             </div>
           </sc-if>
@@ -439,6 +440,14 @@ button{font-family:inherit}
                     <div style="height:92px;margin-top:10px;border-radius:11px;border:1px solid var(--line);background-image:url('{{ heroUrl }}');background-size:cover;background-position:center"></div>
                     <button onClick="{{ clearHero }}" style="margin-top:10px;min-height:38px;padding:0 14px;border-radius:10px;background:none;border:1px solid var(--line);color:var(--mute);font-size:12.5px;cursor:pointer" style-hover="color:var(--bad);border-color:var(--bad)">Remove photo</button>
                   </sc-if>
+                </div>
+                <div style="padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--surface)">
+                  <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin-bottom:6px">Your account</div>
+                  <div style="font-size:12.5px;color:var(--mute);line-height:1.5;margin-bottom:12px">Change your password here. At least 10 characters, and not something guessable from this site's name.</div>
+                  <input type="password" value="{{ newPw }}" onChange="{{ setNewPw }}" placeholder="New password" autocomplete="new-password" style="width:100%;min-height:44px;padding:0 13px;border-radius:11px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:14px;font-family:inherit;outline:none" />
+                  <input type="password" value="{{ newPw2 }}" onChange="{{ setNewPw2 }}" placeholder="Repeat new password" autocomplete="new-password" style="width:100%;min-height:44px;padding:0 13px;border-radius:11px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:14px;font-family:inherit;outline:none;margin-top:9px" />
+                  <button onClick="{{ doChangePw }}" style="margin-top:10px;min-height:40px;padding:0 16px;border-radius:10px;border:none;background:var(--green);color:#fff;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer" style-hover="background:var(--gold)">Change password</button>
+                  <div style="font-size:12.5px;color:{{ acctColor }};margin-top:10px;min-height:17px;line-height:1.45">{{ acctMsg }}</div>
                 </div>
                 <div style="padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--surface)">
                   <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin-bottom:12px">Published sets</div>
@@ -726,6 +735,7 @@ class Component extends DCLogic {
     pubMsg:"",pubOk:true,jsonMsg:"",jsonOk:true,heroMsg:"",heroOk:true,pass:"",passErr:"",adminAuthed:false,
     session:null,offline:false,reveal:"after_close",
     recoverTok:"",newPw:"",newPw2:"",recoverErr:"",recoverDone:false,
+    acctMsg:"",acctOk:true,
     graded:null,grading:false,qLoading:false,qErr:"",hostEmail:"",hostRows:[]};
 
   liveSet(){
@@ -888,6 +898,31 @@ class Component extends DCLogic {
       .then(()=>{ sbClearSession();
         this.setState({newPw:"",newPw2:"",recoverTok:"",recoverErr:"",recoverDone:true,session:null,adminAuthed:false}); })
       .catch(err=>this.setState({recoverErr: err.message || "That link has expired — ask for a new one."}));
+  }
+
+  // A signed-in host changes their own password here. No email, no dashboard.
+  changePassword(){
+    const a=this.state.newPw||"", b=this.state.newPw2||"";
+    if(a.length<10){ this.setState({acctMsg:"Use at least 10 characters.",acctOk:false}); return; }
+    if(a!==b){ this.setState({acctMsg:"The two passwords do not match.",acctOk:false}); return; }
+    this.setState({acctMsg:"Saving…",acctOk:true});
+    fetch(SB_AUTH+"/user", {method:"PUT",
+        headers: sbHeaders(this.tok(), {"content-type":"application/json"}),
+        body: JSON.stringify({password:a})})
+      .then(sbRead)
+      .then(()=>this.setState({newPw:"",newPw2:"",acctMsg:"Password changed. It applies from your next sign-in.",acctOk:true}))
+      .catch(err=>this.setState({acctMsg: err.message || "Could not change the password.",acctOk:false}));
+  }
+
+  // Emails a recovery link. Needs SMTP configured on the project, so the
+  // message says what actually happens rather than promising delivery.
+  requestRecovery(){
+    const em=(this.state.hostEmail||"").trim();
+    if(!em){ this.setState({passErr:"Enter your email address first."}); return; }
+    this.setState({passErr:"Sending…"});
+    sbAuth("/recover?redirect_to="+encodeURIComponent(location.origin+"/"), {email:em})
+      .then(()=>this.setState({passErr:"If that address has a host account, a reset link has been sent. It only arrives if email is configured for this project."}))
+      .catch(err=>this.setState({passErr: err.message || "Could not send a reset link."}));
   }
 
   hostSignIn(){
@@ -1132,6 +1167,9 @@ class Component extends DCLogic {
       setNewPw:(e)=>this.setState({newPw:e.target.value}),
       setNewPw2:(e)=>this.setState({newPw2:e.target.value}),
       saveNewPw:()=>this.setNewPassword(),
+      doChangePw:()=>this.changePassword(),
+      forgotPw:()=>this.requestRecovery(),
+      acctMsg:s.acctMsg, acctColor: s.acctOk ? "var(--ok)" : "var(--bad)",
       toSignIn:()=>this.setState({screen:"admin", recoverDone:false}),
       toggleTheme:()=>{ const n=s.theme==="dark"?"light":"dark"; this.applyTheme(n); this.setState({theme:n}); },
       goHome:()=>this.setState({screen:"landing"}), goRepo:()=>this.setState({screen:"repo"}),
