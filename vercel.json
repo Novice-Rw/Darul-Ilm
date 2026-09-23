@@ -6,7 +6,7 @@
       "source": "/(.*)",
       "headers": [
         { "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src 'self' blob:; child-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://hgervkxkfybciqnzlswd.supabase.co; connect-src 'self' https://hgervkxkfybciqnzlswd.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'" },
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src 'self' blob:; child-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://hgervkxkfybciqnzlswd.supabase.co; connect-src 'self' https://hgervkxkfybciqnzlswd.supabase.co https://api.mymemory.translated.net; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'" },
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },

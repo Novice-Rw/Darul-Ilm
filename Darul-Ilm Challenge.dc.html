@@ -380,6 +380,15 @@ button{font-family:inherit}
                 </div>
                 <div style="font-size:11.5px;color:var(--mute);line-height:1.5;margin-top:-6px">Each language is edited separately. The correct answer is shared across all three.</div>
 
+                <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+                  <button onClick="{{ doTranslate }}" style="min-height:38px;padding:0 14px;border-radius:10px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:12.5px;font-family:inherit;cursor:pointer" style-hover="border-color:var(--gold);color:var(--gold)">{{ translateLabel }}</button>
+                </div>
+                <div style="font-size:11.5px;color:{{ mtColor }};line-height:1.45;min-height:16px;margin-top:-6px">{{ mtMsg }}</div>
+
+                <sc-if value="{{ showMtBadge }}">
+                  <div style="font-size:11.5px;color:var(--gold);line-height:1.45;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface2)">Machine translation, not yet read by anyone. Edit anything here and this note clears.</div>
+                </sc-if>
+
                 <div style="display:flex;flex-wrap:wrap;gap:6px">
                   <sc-for list="{{ qChips }}" as="ch" hint-placeholder-count="4">
                     <button onClick="{{ ch.go }}" style="width:32px;height:32px;border-radius:8px;background:{{ ch.bg }};color:{{ ch.color }};border:1px solid {{ ch.border }};font-size:12.5px;font-family:inherit;cursor:pointer">{{ ch.n }}</button>
@@ -708,10 +717,30 @@ function fmtDur(ms){
 }
 
 // One question, three languages. correct_index is shared across languages.
+const MT_ENDPOINT = "https://api.mymemory.translated.net/get";
+
+// Free, keyless machine translation. Quality is uneven: Arabic is usually
+// sound because the vocabulary is Arabic to begin with, while Kinyarwanda
+// regularly loses religious terms and has been seen to invert meaning. Output
+// is therefore marked as unreviewed until a host edits it.
+async function mtTranslate(text, to){
+  const t=(text||"").trim();
+  if(!t) return "";
+  const url = MT_ENDPOINT + "?q=" + encodeURIComponent(t) + "&langpair=" + encodeURIComponent("en|" + to);
+  const r = await fetch(url);
+  if(!r.ok) throw new Error("Translation service is unavailable.");
+  const d = await r.json();
+  if(String(d.responseStatus) !== "200") throw new Error(d.responseDetails || "Translation failed.");
+  const out = (d.responseData && d.responseData.translatedText) || "";
+  // MyMemory echoes a warning in the text itself when a quota is exhausted.
+  if(/MYMEMORY WARNING|QUERY LENGTH LIMIT/i.test(out)) throw new Error("Daily free translation limit reached. Try again tomorrow, or type it in.");
+  return out;
+}
+
 function blankQ(){
   return { c:0, q:{en:"",rw:"",ar:""},
            o:{en:["","","",""], rw:["","","",""], ar:["","","",""]},
-           e:{en:"",rw:"",ar:""} };
+           e:{en:"",rw:"",ar:""}, mt:{rw:false, ar:false} };
 }
 
 // Normalise anything loaded from the database or pasted as JSON.
@@ -724,13 +753,14 @@ function normQ(x){
   return { c: Number.isInteger(x&&x.c) ? x.c : 0,
            q:{en:q.en||"",rw:q.rw||"",ar:q.ar||""},
            o:{en:Array.from(en,v=>v==null?"":String(v)), rw:fit(o.rw), ar:fit(o.ar)},
-           e:{en:e.en||"",rw:e.rw||"",ar:e.ar||""} };
+           e:{en:e.en||"",rw:e.rw||"",ar:e.ar||""},
+           mt:{rw:false, ar:false} };
 }
 
 class Component extends DCLogic {
   state = {theme:this.props.startTheme ?? "dark",screen:"landing",lang:this.props.defaultLanguage ?? "en",qi:0,answers:{},left:this.secs(),sets:[],setsLoaded:false,hero:null,activeId:null,now:Date.now(),
     dId:"",dTitleEn:"",dTitleRw:"",dTitleAr:"",dSecs:SECS,dJson:"",
-    qList:[blankQ()],qIdx:0,editLang:"en",showJson:false,
+    qList:[blankQ()],qIdx:0,editLang:"en",showJson:false,translating:false,mtMsg:"",mtOk:true,mtAck:false,
     dOpens:dtLocal(new Date()),dCloses:dtLocal(new Date(Date.now()+7*86400000)),
     pubMsg:"",pubOk:true,jsonMsg:"",jsonOk:true,heroMsg:"",heroOk:true,pass:"",passErr:"",adminAuthed:false,
     session:null,offline:false,reveal:"after_close",
@@ -953,6 +983,49 @@ class Component extends DCLogic {
       .catch(()=>{});
   }
 
+  // Fill Kinyarwanda and Arabic for the current question from its English.
+  translateCurrent(){
+    const st=this.state, q=this.curQ();
+    if(!(q.q.en||"").trim()){ this.setState({mtMsg:"Write the English question first.",mtOk:false}); return; }
+    this.setState({translating:true, mtMsg:"Translating…", mtOk:true});
+
+    const jobs=[];
+    ["rw","ar"].forEach(L=>{
+      jobs.push(mtTranslate(q.q.en, L).then(v=>({L, kind:"q", v})));
+      (q.o.en||[]).forEach((o,i)=>{
+        if((o||"").trim()) jobs.push(mtTranslate(o, L).then(v=>({L, kind:"o", i, v})));
+      });
+      if((q.e.en||"").trim()) jobs.push(mtTranslate(q.e.en, L).then(v=>({L, kind:"e", v})));
+    });
+
+    Promise.all(jobs)
+      .then(res=>{
+        this.updQ(x=>{
+          res.forEach(r=>{
+            if(r.kind==="q") x.q[r.L]=r.v;
+            else if(r.kind==="e") x.e[r.L]=r.v;
+            else x.o[r.L][r.i]=r.v;
+          });
+          x.mt={rw:true, ar:true};
+        });
+        this.setState({translating:false, mtOk:true,
+          mtMsg:"Filled in. Check the Kinyarwanda especially — free translation loses religious terms."});
+      })
+      .catch(err=>this.setState({translating:false, mtOk:false,
+        mtMsg: err.message || "Could not translate."}));
+  }
+
+  // Any question still carrying machine output nobody has touched.
+  unreviewed(){
+    const out=[];
+    this.state.qList.forEach((x,i)=>{
+      const m=x.mt||{};
+      const langs=["rw","ar"].filter(L=>m[L]);
+      if(langs.length) out.push({n:i+1, langs});
+    });
+    return out;
+  }
+
   // --- question builder -------------------------------------------------
   curQ(){ const st=this.state; return st.qList[st.qIdx] || blankQ(); }
 
@@ -1039,6 +1112,15 @@ class Component extends DCLogic {
     const st=this.state;
     const problems=this.builderErrors();
     if(problems.length){ this.setState({pubMsg:problems[0],pubOk:false}); return; }
+    const raw=this.unreviewed();
+    if(raw.length && !st.mtAck){
+      const names={rw:"Kinyarwanda", ar:"Arabic"};
+      const langs=[...new Set(raw.flatMap(x=>x.langs))].map(L=>names[L]).join(" and ");
+      this.setState({mtAck:true, pubOk:false,
+        pubMsg:langs+" on question"+(raw.length===1?" ":"s ")+raw.map(x=>x.n).join(", ")
+          +" is machine translation nobody has read. Press Publish again to send it as is."});
+      return;
+    }
     const questions=this.buildQuestions();
     const en=(st.dTitleEn||"").trim();
     const set={ id:(st.dId||"").trim().toLowerCase(),
@@ -1308,9 +1390,9 @@ class Component extends DCLogic {
         border: i===s.qIdx ? "var(--green)" : "var(--line)",
         go: ()=>this.gotoQ(i) })),
       qText: (this.curQ().q[s.editLang]||""),
-      setQText: (e)=>{ const v=e.target.value; this.updQ(q=>{ q.q[s.editLang]=v; }); },
+      setQText: (e)=>{ const v=e.target.value; this.updQ(q=>{ q.q[s.editLang]=v; if(s.editLang!=="en"&&q.mt) q.mt[s.editLang]=false; }); },
       qExp: (this.curQ().e[s.editLang]||""),
-      setQExp: (e)=>{ const v=e.target.value; this.updQ(q=>{ q.e[s.editLang]=v; }); },
+      setQExp: (e)=>{ const v=e.target.value; this.updQ(q=>{ q.e[s.editLang]=v; if(s.editLang!=="en"&&q.mt) q.mt[s.editLang]=false; }); },
       qDir: s.editLang==="ar" ? "rtl" : "ltr",
       qFont: s.editLang==="ar" ? "'Noto Kufi Arabic',sans-serif" : "inherit",
       qOptions: (this.curQ().o.en||[]).map((_,j)=>{
@@ -1321,9 +1403,14 @@ class Component extends DCLogic {
           ring: isC ? "var(--ok)" : "var(--line)",
           fill: isC ? "var(--ok)" : "transparent",
           mark: ()=>this.updQ(q=>{ q.c=j; }),
-          set: (e)=>{ const v=e.target.value; this.updQ(q=>{ q.o[s.editLang][j]=v; }); },
+          set: (e)=>{ const v=e.target.value; this.updQ(q=>{ q.o[s.editLang][j]=v; if(s.editLang!=="en"&&q.mt) q.mt[s.editLang]=false; }); },
           drop: ()=>this.removeOpt(j) };
       }),
+      doTranslate:()=>this.translateCurrent(),
+      translating:s.translating,
+      translateLabel: s.translating ? "Translating…" : "Auto-fill rw + ar from English",
+      mtMsg:s.mtMsg, mtColor: s.mtOk ? "var(--mute)" : "var(--bad)",
+      showMtBadge: (()=>{ const m=this.curQ().mt||{}; return !!(s.editLang!=="en" && m[s.editLang]); })(),
       addOption:()=>this.addOpt(),
       addQuestion:()=>this.addQuestion(),
       removeQuestion:()=>this.removeQuestion(),
