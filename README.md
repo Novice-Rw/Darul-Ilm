@@ -30,6 +30,7 @@ Answers are held and marked by the database, never by the browser.
 | `tools/fonts-inline.html` | Inlined web fonts used by the build |
 | `supabase/schema.sql` | Tables, views, policies and functions |
 | `supabase/hardening.sql` | Grading rules and privilege restrictions |
+| `supabase/leaderboard.sql` | Phone collection, rankings and masking |
 | `supabase/config.toml` | Auth settings, applied with the Supabase CLI |
 | `vercel.json` | Static hosting config and response headers |
 
@@ -49,9 +50,11 @@ project's SQL editor:
 
 1. `supabase/schema.sql`
 2. `supabase/hardening.sql`
+3. `supabase/leaderboard.sql`
 
-Run them in that order. The second one is not optional — it contains the rules
-that decide when answers may be released.
+Run them in that order. The second is not optional — it contains the rules that
+decide when answers may be released. The third adds rankings and the handling of
+entrants' phone numbers.
 
 ### 2. Auth
 
@@ -141,8 +144,30 @@ Two durations are easy to confuse: *seconds per question* is the countdown on a
 single question, while *opens to closes* is how long the whole set stays
 available.
 
+## Entrants, rankings and phone numbers
+
+Entrants are never asked for a name. Before their answers are submitted they are
+asked for a phone number, so the host can reach whoever finishes in the top
+three.
+
+That number is treated as private:
+
+- The public rankings show it masked — `078•••••22` — never in full, and never
+  alongside anything that identifies the person.
+- The table holding attempts is unreadable to entrants. An entrant can see their
+  own row and nothing else; the masked board is the only public route in.
+- Only a host can see real numbers, through `host_leaderboard`, which refuses
+  anyone not listed in `hosts`.
+- Rankings count each number once, taking its best attempt, so extra anonymous
+  identities cannot stuff the board.
+
+Once prizes are handed out, a host can delete the numbers for a set from the
+Rankings card. Keeping them longer than they are needed serves nobody.
+
 ## Conventions
 
 - `dist/` is generated. Never hand-edit it.
 - Keep question papers and other source material out of this repository.
 - Never commit credentials, keys or tokens of any kind.
+- Entrants' phone numbers are personal data. Do not copy them out of the
+  database, and delete them once the prizes are settled.
