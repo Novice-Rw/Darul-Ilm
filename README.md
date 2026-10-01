@@ -146,23 +146,27 @@ available.
 
 ## Entrants, rankings and phone numbers
 
-Entrants are never asked for a name. Before their answers are submitted they are
-asked for a phone number, so the host can reach whoever finishes in the top
-three.
+Entrants are never asked for a name, and they never see a ranking — not their
+position, not anyone else's score. The only thing an entrant sees is their own
+result.
 
-That number is treated as private:
+After answering, they are offered the chance to leave a phone number. It is
+**optional**: there is a plain "submit without a number" alongside it, and the
+screen says what it is for — a host may use it to reach someone about a prize,
+and prizes are not promised.
 
-- The public rankings show it masked — `078•••••22` — never in full, and never
-  alongside anything that identifies the person.
-- The table holding attempts is unreadable to entrants. An entrant can see their
-  own row and nothing else; the masked board is the only public route in.
-- Only a host can see real numbers, through `host_leaderboard`, which refuses
-  anyone not listed in `hosts`.
-- Rankings count each number once, taking its best attempt, so extra anonymous
-  identities cannot stuff the board.
+Ranking is a host tool:
 
-Once prizes are handed out, a host can delete the numbers for a set from the
-Rankings card. Keeping them longer than they are needed serves nobody.
+- `host_leaderboard` returns **every** entrant for a set in score order, whether
+  or not they left a number. Rows with no number are shown as such.
+- It refuses anyone not listed in `hosts`.
+- Someone who left a number is counted once across their anonymous identities,
+  taking their best attempt. Someone who did not is counted per submission,
+  which is as much as can be known about them.
+- `forget_phones` deletes the numbers for a set once prizes are settled.
+
+There is no public leaderboard and no masked view. An earlier build had one;
+it was removed rather than left unused, so nothing but a host can read scores.
 
 ## Conventions
 

@@ -212,20 +212,6 @@ button{font-family:inherit}
             <span>● {{ t.legendWrong }} {{ wrong }}</span>
           </div>
 
-          <sc-if value="{{ hasBoard }}">
-            <div style="width:100%;max-width:520px;padding:20px 22px;border:1px solid var(--line);border-radius:18px;background:var(--surface);text-align:start">
-              <div style="font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold)">{{ t.boardTitle }}</div>
-              <sc-for list="{{ boardRows }}" as="b" hint-placeholder-count="5">
-                <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)">
-                  <div style="width:26px;height:26px;flex:none;border-radius:8px;display:grid;place-items:center;background:{{ b.bg }};color:{{ b.color }};font-size:12.5px;font-weight:600">{{ b.rank }}</div>
-                  <div style="flex:1;min-width:0;font-size:14px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:{{ b.color }}">{{ b.who }} {{ b.tag }}</div>
-                  <div style="font-size:13px;color:var(--mute)">{{ b.score }}</div>
-                </div>
-              </sc-for>
-              <div style="font-size:11.5px;color:var(--mute);line-height:1.5;margin-top:12px">{{ t.boardNote }}</div>
-            </div>
-          </sc-if>
-
           <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px">
             <button onClick="{{ goReview }}" style="min-height:52px;padding:0 26px;border-radius:999px;border:none;background:var(--green);color:#fff;font-size:15px;font-weight:600;cursor:pointer" style-hover="background:var(--gold)">{{ t.review }}</button>
             <button onClick="{{ retake }}" style="min-height:52px;padding:0 26px;border-radius:999px;background:none;border:1px solid var(--line);color:var(--ink);font-size:15px;cursor:pointer" style-hover="border-color:var(--gold)">{{ t.retake }}</button>
@@ -303,6 +289,7 @@ button{font-family:inherit}
           <label style="display:block;text-align:start;font-size:12.5px;color:var(--mute);margin-bottom:6px">{{ t.phoneLabel }}</label>
           <input type="tel" inputmode="tel" value="{{ phone }}" onChange="{{ setPhone }}" placeholder="078 000 0000" autocomplete="tel" style="width:100%;min-height:50px;padding:0 16px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:15px;font-family:inherit;outline:none" />
           <button onClick="{{ submitPhone }}" style="width:100%;min-height:50px;margin-top:12px;border-radius:12px;border:none;background:var(--green);color:#fff;font-size:15px;font-weight:600;cursor:pointer" style-hover="background:var(--gold)">{{ t.phoneGo }}</button>
+          <button onClick="{{ skipPhone }}" style="margin-top:12px;background:none;border:none;color:var(--mute);font-size:12.5px;font-family:inherit;text-decoration:underline;cursor:pointer" style-hover="color:var(--gold)">{{ t.phoneSkip }}</button>
           <div style="font-size:12px;color:var(--bad);margin-top:12px;min-height:16px;line-height:1.45">{{ phoneErr }}{{ qErr }}</div>
         </div>
       </section>
@@ -479,13 +466,13 @@ button{font-family:inherit}
                 </div>
                 <div style="padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--surface)">
                   <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin-bottom:6px">Rankings</div>
-                  <div style="font-size:12.5px;color:var(--mute);line-height:1.5;margin-bottom:10px">Press Rankings on a set below to see who scored what. These are the real numbers — entrants only ever see them hidden.</div>
+                  <div style="font-size:12.5px;color:var(--mute);line-height:1.5;margin-bottom:10px">Press Rankings on a set below to see every entrant in score order. Entrants never see a ranking at all. Leaving a number is optional, so some rows will have none.</div>
                   <div style="font-size:12.5px;color:var(--mute);min-height:16px">{{ boardMsg }}</div>
                   <sc-if value="{{ hasHostBoard }}">
                     <sc-for list="{{ hostBoardRows }}" as="hb" hint-placeholder-count="5">
                       <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)">
                         <div style="width:24px;flex:none;font-size:12.5px;color:var(--gold);font-weight:600">{{ hb.rank }}</div>
-                        <div style="flex:1;min-width:0;font-size:13.5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace">{{ hb.phone }}</div>
+                        <div style="flex:1;min-width:0;font-size:13.5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:{{ hb.phoneColor }}">{{ hb.phone }}</div>
                         <div style="font-size:12.5px;color:var(--mute)">{{ hb.score }}</div>
                       </div>
                     </sc-for>
@@ -613,9 +600,8 @@ const STR = {
     betweenBody:"This round has closed. The host will post a new set shortly — in the meantime you can explore every past set and its answer key in the repository.",
     exploreRepo:"Explore the repository",questionsWord:"questions",eachWord:"each",
     keyLater:"The answer key opens when this round closes.",
-    phoneTitle:"Almost done",phoneBody:"Leave a phone number so the host can reach you if you finish in the top three. No name is asked for, and other entrants only ever see a hidden number.",
-    phoneLabel:"Phone number",phoneGo:"Submit my answers",phoneBad:"Enter a valid phone number.",
-    boardTitle:"Rankings",boardNote:"Numbers are hidden from other entrants. Only the host can see them in full.",boardEmpty:"No entries yet.",boardYou:"you",
+    phoneTitle:"Almost done",phoneBody:"You can leave a phone number if you like. The host may use it to reach you about a prize, though prizes are not promised. No name is asked for, and no other entrant sees your number or your score.",
+    phoneLabel:"Phone number — optional",phoneGo:"Submit my answers",phoneSkip:"Submit without a number",phoneBad:"That does not look like a phone number. Leave it empty to skip.",
     live:"Live",soon:"Soon",open:"Start →",locked:"Coming soon"},
   rw:{navHome:"Ahabanza",navRepo:"Ububiko",navAdmin:"Umwanditsi",heroTitle:"Imenye ubwawe unyuze mu Isilamu.",
     heroLine:"Menya ubujyakuzimu bw'ukwemera kwawe, ikibazo ku kibazo.",
@@ -630,9 +616,8 @@ const STR = {
     betweenBody:"Iyi seti yarangiye. Umwanditsi azashyiraho indi vuba — muri iki gihe ushobora gusura ububiko ukareba seti zashize n'ibisubizo byazo.",
     exploreRepo:"Sura ububiko",questionsWord:"ibibazo",eachWord:"buri kimwe",
     keyLater:"Ibisubizo bizagaragara iyi seti irangiye.",
-    phoneTitle:"Hafi kurangiza",phoneBody:"Andika nimero ya telefoni kugira ngo umwanditsi akubone niba uri mu batatu ba mbere. Nta zina risabwa, kandi abandi babona nimero ihishe gusa.",
-    phoneLabel:"Nimero ya telefoni",phoneGo:"Ohereza ibisubizo",phoneBad:"Andika nimero ya telefoni yemewe.",
-    boardTitle:"Urutonde",boardNote:"Nimero zihishwe ku bandi. Umwanditsi ni we wenyine uzibona zuzuye.",boardEmpty:"Nta wundi urahagera.",boardYou:"wowe",
+    phoneTitle:"Hafi kurangiza",phoneBody:"Ushobora gusiga nimero ya telefoni niba ubishaka. Umwanditsi ashobora kuyikoresha kugira ngo akubone ku bijyanye n'igihembo, nubwo ibihembo bitemezwa. Nta zina risabwa, kandi nta wundi ubona nimero yawe cyangwa amanota yawe.",
+    phoneLabel:"Nimero ya telefoni — si itegeko",phoneGo:"Ohereza ibisubizo",phoneSkip:"Ohereza nta nimero",phoneBad:"Iyi si nimero ya telefoni. Usige ubusa niba utayitanga.",
     live:"Bihari",soon:"Biraza",open:"Tangira →",locked:"Biraza"},
   ar:{navHome:"الرئيسية",navRepo:"الأرشيف",navAdmin:"المشرف",heroTitle:"اكتشف نفسك من خلال الإسلام.",
     heroLine:"اكتشف عمق إيمانك، سؤالًا بعد سؤال.",
@@ -647,9 +632,8 @@ const STR = {
     betweenBody:"انتهت هذه الجولة. سينشر المشرف مجموعة جديدة قريبًا — ويمكنك في هذه الأثناء تصفح كل المجموعات السابقة ومفاتيح إجاباتها في الأرشيف.",
     exploreRepo:"تصفح الأرشيف",questionsWord:"أسئلة",eachWord:"لكل سؤال",
     keyLater:"يظهر مفتاح الإجابات بعد انتهاء هذه الجولة.",
-    phoneTitle:"اقتربت من النهاية",phoneBody:"اترك رقم هاتفك ليتمكن المشرف من الوصول إليك إن كنت ضمن الثلاثة الأوائل. لا يُطلب أي اسم، ولا يرى المشاركون الآخرون سوى رقم مخفي.",
-    phoneLabel:"رقم الهاتف",phoneGo:"إرسال إجاباتي",phoneBad:"أدخل رقم هاتف صحيح.",
-    boardTitle:"الترتيب",boardNote:"الأرقام مخفية عن المشاركين. المشرف وحده يراها كاملة.",boardEmpty:"لا توجد مشاركات بعد.",boardYou:"أنت",
+    phoneTitle:"اقتربت من النهاية",phoneBody:"يمكنك ترك رقم هاتفك إن أردت. قد يستخدمه المشرف للتواصل معك بشأن جائزة، والجوائز غير مضمونة. لا يُطلب أي اسم، ولا يرى أي مشارك آخر رقمك ولا نتيجتك.",
+    phoneLabel:"رقم الهاتف — اختياري",phoneGo:"إرسال إجاباتي",phoneSkip:"إرسال بدون رقم",phoneBad:"هذا ليس رقم هاتف. اتركه فارغًا للتخطي.",
     live:"متاح",soon:"قريبًا",open:"ابدأ ←",locked:"قريبًا"}
 };
 
@@ -789,12 +773,6 @@ async function mtTranslate(text, to){
   return out;
 }
 
-// Same masking the database applies, so an entrant can spot their own row.
-function maskPhone(p){
-  const t=(p||"").replace(/[^0-9+]/g,"");
-  if(t.length<6) return "•••";
-  return t.slice(0,3) + "•".repeat(Math.max(t.length-5,1)) + t.slice(-2);
-}
 
 function blankQ(){
   return { c:0, q:{en:"",rw:"",ar:""},
@@ -824,7 +802,7 @@ class Component extends DCLogic {
     pubMsg:"",pubOk:true,jsonMsg:"",jsonOk:true,heroMsg:"",heroOk:true,pass:"",passErr:"",adminAuthed:false,
     session:null,offline:false,reveal:"after_close",
     recoverTok:"",newPw:"",newPw2:"",recoverErr:"",recoverDone:false,
-    phone:"",phoneErr:"",board:[],hostBoard:[],hostBoardId:"",boardMsg:"",
+    phone:"",phoneErr:"",hostBoard:[],hostBoardId:"",boardMsg:"",
     acctMsg:"",acctOk:true,
     graded:null,grading:false,qLoading:false,qErr:"",hostEmail:"",hostRows:[]};
 
@@ -954,13 +932,6 @@ class Component extends DCLogic {
 
   // Scoring happens in the database. The browser never sees the answers while
   // a round is open, so it cannot mark the paper itself.
-  loadBoard(setId){
-    sbRest("/leaderboard?select=rank,who,score,total&order=rank.asc&limit=10&set_id=eq."
-           + encodeURIComponent(setId), this.tok())
-      .then(rows=>this.setState({board:rows||[]}))
-      .catch(()=>this.setState({board:[]}));
-  }
-
   loadHostBoard(setId){
     this.setState({boardMsg:"Loading…", hostBoardId:setId});
     sbRpc("host_leaderboard", {p_set_id:setId}, this.tok())
@@ -993,7 +964,7 @@ class Component extends DCLogic {
     this.setState({grading:true, qErr:""});
     this.ensureSession()
       .then(se=>sbRpc("grade_attempt", {p_set_id:set.id, p_answers:st.answers, p_phone:st.phone||null}, se && se.access_token))
-      .then(g=>{ this.setState({graded:g, grading:false, screen:"results"}); this.loadBoard(set.id); window.scrollTo(0,0); })
+      .then(g=>{ this.setState({graded:g, grading:false, screen:"results"}); window.scrollTo(0,0); })
       .catch(err=>this.setState({grading:false,
         qErr: err.code==="28000"
           ? "Anonymous sign-in is turned off for this project, so attempts cannot be recorded yet."
@@ -1329,21 +1300,19 @@ class Component extends DCLogic {
       isPhone:s.screen==="phone",
       phone:s.phone, phoneErr:s.phoneErr,
       setPhone:(e)=>this.setState({phone:e.target.value, phoneErr:""}),
+      skipPhone:()=>{ this.setState({phone:"", phoneErr:""}, ()=>this.submitAttempt()); },
       submitPhone:()=>{
-        const digits=(s.phone||"").replace(/[^0-9+]/g,"");
-        if(!/^\+?[0-9]{9,15}$/.test(digits)){ this.setState({phoneErr:t.phoneBad}); return; }
+        const typed=(s.phone||"").trim();
+        const digits=typed.replace(/[^0-9+]/g,"");
+        // Empty is fine — a number is optional. Typed-but-wrong is not.
+        if(typed && !/^\+?[0-9]{9,15}$/.test(digits)){ this.setState({phoneErr:t.phoneBad}); return; }
         this.submitAttempt();
       },
-      boardRows: (s.board||[]).map(b=>{
-        const mine = b.who === maskPhone(s.phone);
-        return { rank:String(b.rank), who:b.who, score:b.score+" / "+b.total,
-          bg: mine ? "var(--ok-soft)" : "var(--surface)",
-          color: mine ? "var(--ok)" : "var(--ink)",
-          tag: mine ? t.boardYou : "" };
-      }),
-      hasBoard: !!(s.board||[]).length,
       hostBoardRows: (s.hostBoard||[]).map(b=>({
-        rank:String(b.rank), phone:b.phone, score:b.score+" / "+b.total,
+        rank:String(b.rank),
+        phone: b.phone || "no number left",
+        phoneColor: b.phone ? "var(--ink)" : "var(--mute)",
+        score:b.score+" / "+b.total,
         at:new Date(b.at).toLocaleString() })),
       hostBoardId:s.hostBoardId, boardMsg:s.boardMsg,
       hasHostBoard: !!(s.hostBoard||[]).length,
