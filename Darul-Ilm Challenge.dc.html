@@ -337,6 +337,7 @@ button{font-family:inherit}
                 <div style="font-family:'Cormorant Garamond',serif;font-size:clamp(24px,5vw,34px);font-weight:600;margin-top:4px">Publish a question set</div>
               </div>
               <button onClick="{{ doPublish }}" style="min-height:48px;padding:0 24px;border-radius:12px;border:none;background:var(--green);color:#fff;font-size:14px;font-weight:600;cursor:pointer" style-hover="background:var(--gold)">{{ publishLabel }}</button>
+              <button onClick="{{ doNewSet }}" style="min-height:48px;padding:0 18px;border-radius:12px;background:none;border:1px solid var(--line);color:var(--mute);font-size:13.5px;cursor:pointer" style-hover="color:var(--gold);border-color:var(--gold)">New set</button>
               <button onClick="{{ signOut }}" style="min-height:48px;padding:0 18px;border-radius:12px;background:none;border:1px solid var(--line);color:var(--mute);font-size:13.5px;cursor:pointer" style-hover="color:var(--bad);border-color:var(--bad)">Sign out</button>
             </div>
             <div style="font-size:13px;color:{{ pubColor }};min-height:19px;margin-bottom:18px">{{ pubMsg }}</div>
@@ -346,8 +347,9 @@ button{font-family:inherit}
               <div style="padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--surface);display:flex;flex-direction:column;gap:16px">
                 <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)">The set</div>
                 <div style="display:flex;flex-direction:column;gap:7px">
-                  <label style="font-size:12.5px;color:var(--mute)">Set id — lowercase letters, numbers and hyphens</label>
-                  <input value="{{ dId }}" onChange="{{ setDId }}" placeholder="swala-round-1" style="min-height:48px;padding:0 14px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-size:14.5px;font-family:inherit;outline:none" />
+                  <label style="font-size:12.5px;color:var(--mute)">Saved as</label>
+                  <div style="min-height:40px;display:flex;align-items:center;padding:0 13px;border-radius:11px;background:var(--surface2);border:1px dashed var(--line);color:var(--mute);font-size:13px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ idPreview }}</div>
+                  <div style="font-size:11.5px;color:var(--mute);line-height:1.45">Taken from the English title. Change the title and this follows, unless the set is already published.</div>
                 </div>
                 <div style="display:flex;flex-direction:column;gap:10px">
                   <label style="font-size:12.5px;color:var(--mute)">Title shown on the landing page</label>
@@ -774,6 +776,20 @@ async function mtTranslate(text, to){
 }
 
 
+// The host should never have to invent an id. One is derived from the English
+// title and shown read-only, so the rule that used to sit in the form —
+// "lowercase letters, numbers and hyphens, 2-64 characters" — is now the
+// machine's problem rather than something to read and obey.
+function slugify(str){
+  const out = (str||"").toLowerCase().trim()
+    .replace(/['\u2019]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 64)
+    .replace(/-+$/, "");
+  return out.length >= 2 ? out : "";
+}
+
 function blankQ(){
   return { c:0, q:{en:"",rw:"",ar:""},
            o:{en:["","","",""], rw:["","","",""], ar:["","","",""]},
@@ -1162,6 +1178,26 @@ class Component extends DCLogic {
       pubMsg:"Loaded "+list.length+" question"+(list.length===1?"":"s")+" into the builder.", pubOk:true});
   }
 
+  // Keep the derived id clear of ids already taken by other sets.
+  uniqueId(base){
+    const taken = new Set((this.state.hostRows||[]).map(x=>x.id));
+    if(this.state.dId) taken.delete(this.state.dId);
+    if(!taken.has(base)) return base;
+    for(let i=2;i<200;i++){
+      const c = base.slice(0,60).replace(/-+$/,"") + "-" + i;
+      if(!taken.has(c)) return c;
+    }
+    return base.slice(0,52) + "-" + Date.now().toString(36);
+  }
+
+  newSet(){
+    this.setState({ dId:"", dTitleEn:"", dTitleRw:"", dTitleAr:"", dSecs:SECS,
+      dOpens:dtLocal(new Date()), dCloses:dtLocal(new Date(Date.now()+7*86400000)),
+      qList:[blankQ()], qIdx:0, editLang:"en", dJson:"", mtAck:false,
+      pubMsg:"Started a new set.", pubOk:true });
+    window.scrollTo(0,0);
+  }
+
   publishSet(){
     const st=this.state;
     const problems=this.builderErrors();
@@ -1177,7 +1213,9 @@ class Component extends DCLogic {
     }
     const questions=this.buildQuestions();
     const en=(st.dTitleEn||"").trim();
-    const set={ id:(st.dId||"").trim().toLowerCase(),
+    const slug = slugify(en);
+    if(!st.dId && !slug){ this.setState({pubMsg:"Give the set an English title first.",pubOk:false}); return; }
+    const set={ id: st.dId || this.uniqueId(slug),
       title:{en:en, rw:(st.dTitleRw||"").trim()||en, ar:(st.dTitleAr||"").trim()||en},
       opensAt:new Date(st.dOpens).toISOString(),
       closesAt:new Date(st.dCloses).toISOString(),
@@ -1186,7 +1224,8 @@ class Component extends DCLogic {
     // The database validates again and stores the answers; they never come back.
     sbRpc("publish_set", {p_set:set}, this.tok())
       .then(r=>{
-        this.setState({pubMsg:"Published — "+r.questions+" question"+(r.questions===1?"":"s")+" live.",pubOk:true});
+        this.setState({dId:r.id,
+          pubMsg:"Published — "+r.questions+" question"+(r.questions===1?"":"s")+" live.",pubOk:true});
         this.loadSets(); this.refreshHostSets();
       })
       .catch(err=>this.setState({pubMsg:err.message||"Could not publish.",pubOk:false}));
@@ -1341,8 +1380,8 @@ class Component extends DCLogic {
         pick:()=>this.setState({lang:l.k})
       })),
       steps:[1,2,3].map(n=>({n:num(n).padStart ? num(n) : num(n),
-        title:[{en:"Answer in your language",rw:"Subiza mu rurimi rwawe",ar:"أجب بلغتك"},{en:"Nothing marked as you go",rw:"Nta gisubizo kigaragara mu nzira",ar:"لا تصحيح أثناء الاختبار"},{en:"Score, key, PDF",rw:"Amanota, ibisubizo, PDF",ar:"النتيجة والإجابات وملف PDF"}][n-1][lang],
-        body:[{en:"English, Kinyarwanda or Arabic — the whole set follows your choice.",rw:"Icyongereza, Ikinyarwanda cyangwa Icyarabu — ibibazo byose bikurikira ihitamo ryawe.",ar:"الإنجليزية أو الكينيارواندية أو العربية — يتبع الاختبار كله اختيارك."},{en:"Move back and forth freely; the host decides any time limit.",rw:"Ushobora kugenda imbere n'inyuma; igihe gishyirwa n'umwanditsi.",ar:"تنقل بحرية، والمشرف هو من يحدد الوقت."},{en:"Green for right, red for wrong, then a printable answer key.",rw:"Icyatsi ku byukuri, umutuku ku byibeshye, hanyuma ibisubizo byo kubika.",ar:"الأخضر للصواب والأحمر للخطأ، ثم مفتاح إجابات قابل للطباعة."}][n-1][lang]
+        title:[{en:"Answer in your language",rw:"Subiza mu rurimi rwawe",ar:"أجب بلغتك"},{en:"Nothing marked as you go",rw:"Nta gisubizo kigaragara mu nzira",ar:"لا تصحيح أثناء الاختبار"},{en:"Score now, answer key later",rw:"Amanota ubu, ibisubizo nyuma",ar:"النتيجة الآن والإجابات لاحقًا"}][n-1][lang],
+        body:[{en:"English, Kinyarwanda or Arabic — the whole set follows your choice.",rw:"Icyongereza, Ikinyarwanda cyangwa Icyarabu — ibibazo byose bikurikira ihitamo ryawe.",ar:"الإنجليزية أو الكينيارواندية أو العربية — يتبع الاختبار كله اختيارك."},{en:"Go back and change an answer any time — but each question runs on its own countdown.",rw:"Ushobora gusubira inyuma ukahindura igisubizo igihe cyose — ariko buri kibazo gifite igihe cyagenwe.",ar:"يمكنك العودة وتغيير إجابتك في أي وقت — لكن لكل سؤال وقتًا محددًا."},{en:"Green for right, red for wrong straight away. The answer key, with a printable sheet, opens when the round closes.",rw:"Icyatsi ku byukuri, umutuku ku byibeshye ako kanya. Ibisubizo byuzuye, n'urupapuro rwo gucapa, bizagaragara iyi seti irangiye.",ar:"الأخضر للصواب والأحمر للخطأ فورًا. أما مفتاح الإجابات، مع ورقة قابلة للطباعة، فيظهر بعد انتهاء الجولة."}][n-1][lang]
       })),
       start:()=>{ if(lv && !lv.fallback) this.startSet(lv.id);
         else { this.setState({activeId:null,screen:"quiz",qi:0,answers:{},graded:null,left:this.secs()},()=>this.startTimer()); window.scrollTo(0,0); } },
@@ -1435,7 +1474,8 @@ class Component extends DCLogic {
       setHostEmail:(e)=>this.setState({hostEmail:e.target.value}),
       dId:s.dId, dTitleEn:s.dTitleEn, dTitleRw:s.dTitleRw, dTitleAr:s.dTitleAr,
       dOpens:s.dOpens, dCloses:s.dCloses, dSecs:s.dSecs, dJson:s.dJson,
-      setDId:(e)=>this.setState({dId:e.target.value}),
+      idPreview: s.dId || slugify(s.dTitleEn) || "—",
+      doNewSet:()=>this.newSet(),
       setDTitleEn:(e)=>this.setState({dTitleEn:e.target.value}),
       setDTitleRw:(e)=>this.setState({dTitleRw:e.target.value}),
       setDTitleAr:(e)=>this.setState({dTitleAr:e.target.value}),
