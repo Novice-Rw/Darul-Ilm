@@ -523,7 +523,7 @@ button{font-family:inherit}
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:900},&quot;secondsPerQuestion&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:30,&quot;min&quot;:10,&quot;max&quot;:120,&quot;step&quot;:5,&quot;unit&quot;:&quot;s&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Challenge&quot;},&quot;defaultLanguage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;en&quot;,&quot;rw&quot;,&quot;ar&quot;],&quot;default&quot;:&quot;en&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Challenge&quot;},&quot;startTheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Appearance&quot;},&quot;showTimer&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Challenge&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:900},&quot;secondsPerQuestion&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:30,&quot;min&quot;:10,&quot;max&quot;:120,&quot;step&quot;:5,&quot;unit&quot;:&quot;s&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Challenge&quot;},&quot;defaultLanguage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;en&quot;,&quot;rw&quot;,&quot;ar&quot;],&quot;default&quot;:&quot;rw&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Challenge&quot;},&quot;startTheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Appearance&quot;},&quot;showTimer&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Challenge&quot;}}">
 const QS = [
   {c:2,
    q:{en:"How many prayers are obligatory each day?",rw:"Iswala zitegetswe ku munsi ni zingahe?",ar:"كم عدد الصلوات المفروضة في اليوم؟"},
@@ -702,6 +702,16 @@ function sbAuth(path, body){
 
 // Visitors get an anonymous identity so grading can be one attempt each. The
 // session is kept so a reload does not hand them a fresh attempt.
+// Shared with darul-ilm.com, so a visitor's language follows them between the
+// school and the Challenge. Kinyarwanda first; the school's Swahili has no
+// Challenge translation yet, so it falls back to Kinyarwanda here.
+const LANG_KEY = "darul-ilm-lang";
+function sharedLang(dflt){
+  let v=null; try { v = localStorage.getItem(LANG_KEY); } catch(e){}
+  return (v==="en"||v==="rw"||v==="ar") ? v : (dflt || "rw");
+}
+function saveLang(k){ try { localStorage.setItem(LANG_KEY, k); } catch(e){} }
+
 function sbSaveSession(d){
   if(!d || !d.access_token) return null;
   const sess = { access_token:d.access_token, refresh_token:d.refresh_token,
@@ -814,7 +824,7 @@ function normQ(x){
 }
 
 class Component extends DCLogic {
-  state = {theme:this.props.startTheme ?? "dark",screen:"landing",lang:this.props.defaultLanguage ?? "en",qi:0,answers:{},left:this.secs(),sets:[],setsLoaded:false,hero:null,activeId:null,now:Date.now(),
+  state = {theme:this.props.startTheme ?? "dark",screen:"landing",lang:sharedLang(this.props.defaultLanguage),qi:0,answers:{},left:this.secs(),sets:[],setsLoaded:false,hero:null,activeId:null,now:Date.now(),
     dId:"",dTitleEn:"",dTitleRw:"",dTitleAr:"",dSecs:SECS,dJson:"",
     qList:[blankQ()],qIdx:0,editLang:"en",showJson:false,translating:false,mtMsg:"",mtOk:true,mtAck:false,
     dOpens:dtLocal(new Date()),dCloses:dtLocal(new Date(Date.now()+7*86400000)),
@@ -1420,7 +1430,7 @@ class Component extends DCLogic {
         bg: lang===l.k ? "var(--green)" : "var(--surface)",
         border: lang===l.k ? "var(--green)" : "var(--line)",
         color: lang===l.k ? "#fff" : "var(--ink)",
-        pick:()=>this.setState({lang:l.k})
+        pick:()=>{ saveLang(l.k); this.setState({lang:l.k}); }
       })),
       steps:[1,2,3].map(n=>({n:num(n).padStart ? num(n) : num(n),
         title:[{en:"Answer in your language",rw:"Subiza mu rurimi rwawe",ar:"أجب بلغتك"},{en:"Nothing marked as you go",rw:"Nta gisubizo kigaragara mu nzira",ar:"لا تصحيح أثناء الاختبار"},{en:"Score now, answer key later",rw:"Amanota ubu, ibisubizo nyuma",ar:"النتيجة الآن والإجابات لاحقًا"}][n-1][lang],
