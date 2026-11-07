@@ -7,3 +7,4 @@ supabase/.temp/
 # Source material for question sets. Kept locally, never committed — this
 # repository is public and question papers do not belong in it.
 uploads/
+secrets.local
