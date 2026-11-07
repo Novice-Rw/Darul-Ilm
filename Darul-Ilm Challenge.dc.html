@@ -705,7 +705,7 @@ function sbAuth(path, body){
 function sbSaveSession(d){
   if(!d || !d.access_token) return null;
   const sess = { access_token:d.access_token, refresh_token:d.refresh_token,
-                 expires_at: Date.now() + ((d.expires_in || 3600) * 1000) - 60000,
+                 expires_at: Date.now() + ((d.expires_in || 3600) * 1000) - 300000,
                  is_anon: !!(d.user && d.user.is_anonymous),
                  email: d.user && d.user.email || "" };
   try { localStorage.setItem(SB_SESSION_KEY, JSON.stringify(sess)); } catch(e){}
@@ -858,6 +858,11 @@ class Component extends DCLogic {
       const sc=this.state.screen;
       if(sc==="landing"||sc==="repo"||sc==="admin") this.setState({now:Date.now()});
     },1000);
+    // A question set can take longer to write than a token lives, so renew in
+    // the background rather than failing when someone presses Publish.
+    this._keepalive=setInterval(()=>{
+      if(this.state.adminAuthed) this.freshTok().catch(()=>{});
+    },60000);
     // A stored host session keeps the console open across reloads; is_host()
     // is re-checked on the server before anything is shown.
     const se = sbLoadSession();
@@ -873,27 +878,63 @@ class Component extends DCLogic {
   }
   tok(){ const se=this.state && this.state.session; return se && se.access_token || null; }
 
+  // For public reads. An expired token makes PostgREST reject the request
+  // outright, so send none rather than a stale one and let the anon key serve.
+  safeTok(){
+    const se = this.state && this.state.session;
+    if(!se || !se.access_token) return null;
+    if(se.expires_at && Date.now() >= se.expires_at) return null;
+    return se.access_token;
+  }
+
+  // For host actions. Refreshes when close to expiry and never falls back to
+  // an anonymous identity — a host downgraded to anonymous would get
+  // "Not authorised" instead of being told to sign in again.
+  async freshTok(){
+    let se = this.state.session || sbLoadSession();
+    if(!se || !se.access_token) return null;
+    if(se.expires_at && Date.now() < se.expires_at) return se.access_token;
+    if(!se.refresh_token) return null;
+    if(this._refreshing) { try { await this._refreshing; } catch(e){} 
+      const cur=this.state.session; return cur && cur.access_token || null; }
+    this._refreshing = sbAuth("/token?grant_type=refresh_token", {refresh_token: se.refresh_token})
+      .then(d=>{ const ns=sbSaveSession(d); if(ns) this.setState({session:ns}); return ns; });
+    try { const ns = await this._refreshing; return ns && ns.access_token || null; }
+    catch(e){ return null; }
+    finally { this._refreshing = null; }
+  }
+
+  // Runs a host action with a live token, or sends them back to sign in with
+  // the draft still on screen.
+  hostCall(fn){
+    return this.freshTok().then(tok=>{
+      if(!tok){
+        sbClearSession();
+        this.setState({session:null, adminAuthed:false, hostRows:[],
+          passErr:"Your session expired. Sign in again — nothing you typed has been lost."});
+        const e=new Error("Your session expired. Sign in again — nothing you typed has been lost.");
+        e.expired=true; throw e;
+      }
+      return fn(tok);
+    });
+  }
+
   // Refresh a session that is close to expiry; fall back to a new anonymous one.
   async ensureSession(){
-    let se = this.state.session || sbLoadSession();
-    if(se && se.expires_at && Date.now() > se.expires_at && se.refresh_token){
-      try { se = sbSaveSession(await sbAuth("/token?grant_type=refresh_token",
-              {refresh_token: se.refresh_token})); }
-      catch(e){ se = null; sbClearSession(); }
-    }
-    if(!se){
-      // Anonymous identity: no sign-up form, but grading can still be one
-      // attempt each. Created lazily so browsing does not make an account.
-      se = sbSaveSession(await sbAuth("/signup", {}));
-    }
+    const tok = await this.freshTok();
+    if(tok) return this.state.session;
+    // Anonymous identity: no sign-up form, but grading can still be one
+    // attempt each. Created lazily so browsing does not make an account.
+    sbClearSession();
+    const se = sbSaveSession(await sbAuth("/signup", {}));
     if(se) this.setState({session:se});
     return se;
   }
 
   loadSets(){
     Promise.all([
-      sbRest("/public_sets?select=*&order=opens_at.desc", this.tok()),
-      sbRest("/site_settings?select=hero_url,reveal_answers&limit=1", this.tok())
+      sbRest("/public_sets?select=*&order=opens_at.desc", this.safeTok()),
+      sbRest("/site_settings?select=hero_url,reveal_answers&limit=1", this.safeTok())
     ]).then(([rows, cfg])=>{
       const c = cfg && cfg[0] || {};
       this.setState({ sets:(rows||[]).map(sbMapSet), hero:c.hero_url || null,
@@ -905,7 +946,7 @@ class Component extends DCLogic {
   // Questions arrive without answers; public_questions has no answer column.
   loadQuestions(setId){
     return sbRest("/public_questions?select=position,prompt,options&order=position.asc&set_id=eq."
-                  + encodeURIComponent(setId), this.tok())
+                  + encodeURIComponent(setId), this.safeTok())
       .then(rows=>(rows||[]).map(r=>({ q:r.prompt, o:r.options })));
   }
 
@@ -930,7 +971,7 @@ class Component extends DCLogic {
   // A closed set's key comes from answer_key(), which refuses while a set is open.
   openKey(id){
     this.setState({qErr:"", qLoading:true});
-    sbRpc("answer_key", {p_set_id:id}, this.tok())
+    sbRpc("answer_key", {p_set_id:id}, this.safeTok())
       .then(key=>{
         const qs=(key||[]).map(k=>({q:k.prompt, o:k.options}));
         const detail=(key||[]).map(k=>({position:k.position, given:null,
@@ -953,7 +994,7 @@ class Component extends DCLogic {
   // a round is open, so it cannot mark the paper itself.
   loadHostBoard(setId){
     this.setState({boardMsg:"Loading…", hostBoardId:setId});
-    sbRpc("host_leaderboard", {p_set_id:setId}, this.tok())
+    this.hostCall(tok=>sbRpc("host_leaderboard", {p_set_id:setId}, tok))
       .then(rows=>this.setState({hostBoard:rows||[], boardMsg:""}))
       .catch(err=>this.setState({hostBoard:[], boardMsg:err.message||"Could not load rankings."}));
   }
@@ -962,7 +1003,7 @@ class Component extends DCLogic {
     const id=this.state.hostBoardId;
     if(!id) return;
     this.setState({boardMsg:"Clearing…"});
-    sbRpc("forget_phones", {p_set_id:id}, this.tok())
+    this.hostCall(tok=>sbRpc("forget_phones", {p_set_id:id}, tok))
       .then(r=>{ this.setState({boardMsg:"Cleared "+r.cleared+" number"+(r.cleared===1?"":"s")+"."}); this.loadHostBoard(id); })
       .catch(err=>this.setState({boardMsg:err.message||"Could not clear."}));
   }
@@ -1009,10 +1050,9 @@ class Component extends DCLogic {
     if(a.length<10){ this.setState({acctMsg:"Use at least 10 characters.",acctOk:false}); return; }
     if(a!==b){ this.setState({acctMsg:"The two passwords do not match.",acctOk:false}); return; }
     this.setState({acctMsg:"Saving…",acctOk:true});
-    fetch(SB_AUTH+"/user", {method:"PUT",
-        headers: sbHeaders(this.tok(), {"content-type":"application/json"}),
-        body: JSON.stringify({password:a})})
-      .then(sbRead)
+    this.hostCall(tok=>fetch(SB_AUTH+"/user", {method:"PUT",
+        headers: sbHeaders(tok, {"content-type":"application/json"}),
+        body: JSON.stringify({password:a})}).then(sbRead))
       .then(()=>this.setState({newPw:"",newPw2:"",acctMsg:"Password changed. It applies from your next sign-in.",acctOk:true}))
       .catch(err=>this.setState({acctMsg: err.message || "Could not change the password.",acctOk:false}));
   }
@@ -1039,7 +1079,7 @@ class Component extends DCLogic {
         this.setState({session:se, pass:""});
         // is_host() decides; a valid login is not enough on its own.
         return sbRpc("host_sets", {}, se.access_token)
-          .then(rows=>this.setState({adminAuthed:true, passErr:"", hostRows:rows||[]}))
+          .then(rows=>this.setState({adminAuthed:true, passErr:"", hostRows:rows||[], screen:"admin"}))
           .catch(()=>{ this.setState({passErr:"That account is not a host."}); });
       })
       .catch(err=>this.setState({pass:"", passErr: err.message || "Could not sign in."}));
@@ -1051,7 +1091,7 @@ class Component extends DCLogic {
   }
 
   refreshHostSets(){
-    return sbRpc("host_sets", {}, this.tok())
+    return this.hostCall(tok=>sbRpc("host_sets", {}, tok))
       .then(rows=>this.setState({hostRows:rows||[]}))
       .catch(()=>{});
   }
@@ -1225,7 +1265,7 @@ class Component extends DCLogic {
       secondsPerQuestion:Number(st.dSecs)||SECS, questions };
     this.setState({pubMsg:"Publishing…",pubOk:true});
     // The database validates again and stores the answers; they never come back.
-    sbRpc("publish_set", {p_set:set}, this.tok())
+    this.hostCall(tok=>sbRpc("publish_set", {p_set:set}, tok))
       .then(r=>{
         this.setState({dId:r.id,
           pubMsg:"Published — "+r.questions+" question"+(r.questions===1?"":"s")+" live.",pubOk:true});
@@ -1236,14 +1276,14 @@ class Component extends DCLogic {
 
   removeSet(id){
     this.setState({pubMsg:"Deleting…",pubOk:true});
-    sbRpc("delete_set", {p_set_id:id}, this.tok())
+    this.hostCall(tok=>sbRpc("delete_set", {p_set_id:id}, tok))
       .then(()=>{ this.setState({pubMsg:"Deleted.",pubOk:true}); this.loadSets(); this.refreshHostSets(); })
       .catch(err=>this.setState({pubMsg:err.message||"Could not delete.",pubOk:false}));
   }
 
   editSet(id){
     this.setState({pubMsg:"Loading…",pubOk:true});
-    sbRpc("host_set_detail", {p_set_id:id}, this.tok())
+    this.hostCall(tok=>sbRpc("host_set_detail", {p_set_id:id}, tok))
       .then(x=>{
         this.setState({ dId:x.id, dTitleEn:(x.title&&x.title.en)||"", dTitleRw:(x.title&&x.title.rw)||"",
           dTitleAr:(x.title&&x.title.ar)||"", dSecs:x.secondsPerQuestion||SECS,
@@ -1257,7 +1297,7 @@ class Component extends DCLogic {
 
   clearHero(){
     this.setState({heroMsg:"Removing…",heroOk:true});
-    sbRpc("set_hero", {p_url:null}, this.tok())
+    this.hostCall(tok=>sbRpc("set_hero", {p_url:null}, tok))
       .then(()=>this.setState({heroMsg:"Removed.",heroOk:true,hero:null}))
       .catch(err=>this.setState({heroMsg:err.message||"Could not remove.",heroOk:false}));
   }
@@ -1270,16 +1310,16 @@ class Component extends DCLogic {
       this.setState({heroMsg:"Use a JPEG, PNG, WebP or AVIF image.",heroOk:false}); return; }
     const name = "hero-" + Date.now() + "." + (f.type.split("/")[1] || "jpg");
     this.setState({heroMsg:"Uploading…",heroOk:true});
-    fetch(SB_URL + "/storage/v1/object/hero/" + name, {
+    this.hostCall(tok=>fetch(SB_URL + "/storage/v1/object/hero/" + name, {
         method:"POST",
-        headers: sbHeaders(this.tok(), {"content-type": f.type, "x-upsert":"true"}),
+        headers: sbHeaders(tok, {"content-type": f.type, "x-upsert":"true"}),
         body: f })
       .then(sbRead)
       .then(()=>{
         const url = SB_URL + "/storage/v1/object/public/hero/" + name;
-        return sbRpc("set_hero", {p_url:url}, this.tok())
+        return sbRpc("set_hero", {p_url:url}, tok)
           .then(()=>this.setState({heroMsg:"Uploaded.",heroOk:true,hero:url}));
-      })
+      }))
       .catch(err=>this.setState({heroMsg:err.message||"Upload failed.",heroOk:false}));
   }
 
@@ -1291,7 +1331,7 @@ class Component extends DCLogic {
     clearTimeout(this._tapTo);
     this._tapTo=setTimeout(()=>{ if(this._taps && this._taps.n<5) this.setState({screen:"landing"}); this._taps=null; },420);
   }
-  componentWillUnmount(){ clearInterval(this._iv); clearInterval(this._clock); }
+  componentWillUnmount(){ clearInterval(this._iv); clearInterval(this._clock); clearInterval(this._keepalive); }
   applyTheme(t){ try{ document.documentElement.setAttribute("data-theme",t); }catch(e){} }
 
   startTimer(){
